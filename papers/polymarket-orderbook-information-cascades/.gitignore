@@ -1,0 +1,16 @@
+data/
+results/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+# build artefacts if anyone compiles locally
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+main.pdf

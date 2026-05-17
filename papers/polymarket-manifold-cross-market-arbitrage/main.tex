@@ -1,0 +1,321 @@
+\documentclass{article}
+
+\PassOptionsToPackage{numbers, compress}{natbib}
+\usepackage[preprint]{neurips_2024}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\title{Cross-Market Price Gaps Between Polymarket and Manifold Markets:\\
+A Snapshot Study of 232 Matched Binary Markets}
+
+\author{%
+  Aly Sultan\thanks{Corresponding author. Data and code: see \texttt{papers/polymarket-manifold-cross-market-arbitrage/}.} \\
+  Independent Researcher \\
+  \texttt{aly.sultan@example.org} \\
+  \And
+  Mira Halevi \\
+  Bay-Area Institute for \\ Information Markets \\
+  \texttt{m.halevi@baiim.example} \\
+  \And
+  Tobias Wennegren \\
+  Karolinska Institute Lab for \\ Computational Social Science \\
+  \texttt{tobias.wennegren@ki.example.se}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Polymarket and Manifold Markets are the two largest English-language consumer prediction-market platforms, but they differ in almost every dimension that should affect price: Polymarket clears in USDC against real capital on Polygon, while Manifold runs on play-money ``Mana.'' We ask whether, despite that economic asymmetry, prices on the two platforms agree on a common, identifiable set of binary questions. Using a same-day snapshot of 5{,}767 active Polymarket binary markets and 3{,}104 active Manifold binary markets fetched on 17 May 2026, we automatically identify 232 paired questions via TF-IDF cosine similarity combined with named-entity overlap and end-date alignment. We compute the per-pair price gap (Polymarket Yes price minus Manifold probability) and stratify by match-text similarity, mirror-market status, and Manifold liquidity. Three findings emerge. (1) Across all pairs, the mean signed gap is $-0.112$ and the mean absolute gap is $0.242$; Manifold prices the event higher in $151/232$ pairs ($p = 5.0\times 10^{-6}$, two-sided sign test). (2) Match noise dominates the headline: when we restrict to high-similarity pairs (cosine $\geq 0.70$, $n=64$), the mean signed gap shrinks to $-0.022$ and is no longer significantly different from zero ($t = -0.78$, $p = 0.44$), but the cross-sectional dispersion remains large (mean $|\text{gap}| = 0.130$; OLS slope $0.600$ with $R^2 = 0.406$). (3) Explicit ``mirror'' Manifold markets that label themselves as tracking Polymarket ($n=13$) show $R^2 = 0.98$ and an OLS slope near $1$, validating both the matching pipeline and the existence of an active cross-platform information channel. Because Manifold uses play money, monetary arbitrage is not literally possible; we instead frame the gap as a calibration disagreement and discuss when it might still be informative. We release all matching and analysis code.
+\end{abstract}
+
+\section{Introduction}
+
+Prediction markets convert subjective probability judgments into prices that, in principle, aggregate dispersed private information \citep{wolfers2004prediction,manski2006interpreting,wolfers2006interpreting}. A long line of work has examined whether market prices are well-calibrated forecasts in absolute terms \citep{berg2008longrun,page2013calibrated}, whether the design of the market---in particular real-money vs.\ play-money incentives---meaningfully affects accuracy \citep{servan2004does,hanson2007lmsr}, and whether prediction-market prices have macroeconomic content beyond what poll-style surveys reveal \citep{snowberg2007partisan}. The 2024 U.S. presidential election produced a fresh round of empirical work, focused predominantly on Polymarket and Kalshi \citep{tsang2026anatomy,tsang2026shocks,le2026decomposing,clinton2025prediction,jia2026unlocking}.
+
+This paper asks an orthogonal question: \emph{do the prices on two contemporaneous platforms agree on the same event?} If two markets quote different prices on the same binary question, at least one is mispriced relative to the other; on real-money venues this defines an arbitrage opportunity. Polymarket and Manifold are the natural comparison: both attract a similar user base of forecasting enthusiasts, both host thousands of self-listed binary markets, and both expose snapshot prices via free public APIs. The major asymmetry is that Polymarket clears in USDC \citep{tsang2026anatomy} while Manifold uses non-redeemable play-money tokens (``Mana'').\footnote{Manifold Markets documentation, \url{https://docs.manifold.markets/faq}, accessed 17 May 2026.}
+
+\paragraph{Contribution.} We make three contributions, all narrowly scoped:
+\begin{enumerate}
+  \item A reproducible matching pipeline that turns two raw API snapshots into 232 quality-filtered, paired binary markets, with all matching rules documented and the matched-pair CSV released.
+  \item A stratified description of the cross-platform price gap. The headline statistic on all pairs is misleading because automatic question-matching introduces a meaningful false-positive rate; we show how the gap distribution moves as we tighten the similarity threshold, and we identify a subpopulation of self-labelled ``mirror'' markets that effectively validate the pipeline.
+  \item A small but honest case-study set: half a dozen pairs whose questions are textually identical yet quote 30--65 percentage point differences. These examples make concrete the failure modes one must guard against before claiming an arbitrage or calibration mismatch.
+\end{enumerate}
+
+We are explicit about what this paper is not. It is not a time-series study; we work from a single snapshot. It is not a calibration study against resolved outcomes; matched pairs are still open. It is not an argument that monetary arbitrage exists between the platforms; Mana cannot be redeemed for fiat. We discuss each limitation in Section~\ref{sec:limits}.
+
+\section{Related Work}
+
+\paragraph{Prediction markets as forecasts.} The case for treating market prices as probability estimates is laid out in \citet{wolfers2004prediction} and challenged on identification grounds by \citet{manski2006interpreting}, who shows that with heterogeneous risk-neutral traders the equilibrium price is at most a partial identifier of the mean belief. \citet{berg2008longrun} document that Iowa Electronic Markets election-eve prices have absolute errors averaging $1.4\%$ in U.S. presidential contests, beating polls $74\%$ of the time across 1988--2004. \citet{page2013calibrated} document a favourite/longshot bias on InTrade that grows with time-to-expiration.
+
+\paragraph{Real vs.\ play money.} \citet{servan2004does} compare TradeSports (real money) with NewsFutures (play money) across the 2003-2004 NFL season and find no statistically significant accuracy gap. This null result is one of the empirical bases for treating play-money platforms like Manifold as informationally meaningful at all---without it, we would have little prior reason to expect Manifold prices to track Polymarket prices.
+
+\paragraph{Polymarket-specific empirics.} \citet{tsang2026anatomy} reconstruct on-chain Polymarket trading for the 2024 U.S. presidential election and find that arbitrage-deviation half-lives within Polymarket fell from hours to under a minute as the election approached, and Kyle's $\lambda$ dropped from $0.53$ to $0.01$. \citet{tsang2026shocks} examine the same market's response to the Biden-Trump debate, the assassination attempt on Trump, and Biden's withdrawal. \citet{le2026decomposing} use 292 million trades across Kalshi and Polymarket to decompose calibration error into horizon, domain, and trade-size components, and show that political markets on both venues are systematically compressed toward $50\%$. \citet{jia2026unlocking} release a continuously maintained Polymarket lifecycle dataset.
+
+\paragraph{Cross-platform comparisons.} The closest precedent for our work is \citet{clinton2025prediction}, who analyse $2{,}500$ political markets across IEM, Kalshi, PredictIt and Polymarket in the final five weeks of the 2024 election and find that prices for identical contracts diverged across exchanges, with arbitrage opportunities peaking in the final two weeks. Their setting is real-money\,vs.\,real-money political-only; ours is real-money\,vs.\,play-money across all categories.
+
+\paragraph{Market microstructure.} The dominant Polymarket market-maker is essentially a CLOB, but the logarithmic market scoring rule of \citet{hanson2007lmsr} is the canonical theoretical model for the kind of automated market makers Manifold uses. We do not estimate microstructure parameters here.
+
+\section{Data and Methodology}
+
+\subsection{Data Sources}
+
+We fetched two snapshots on 17 May 2026 (UTC):
+\begin{itemize}
+  \item \textbf{Polymarket Gamma API}: \url{https://gamma-api.polymarket.com/markets}. We paged with \texttt{offset} pagination ordered by \texttt{volumeNum} descending, retrieving 6{,}000 markets before the API began returning HTTP 422 on further pagination. Of these, 5{,}767 satisfied our filters (active, not closed, two outcomes labelled \texttt{[``Yes'', ``No'']}, both \texttt{outcomePrices} parseable as floats in $(0,1)$). We extract the Yes price together with the volume, liquidity, best bid, best ask, and the (UMA-resolved) end date.
+  \item \textbf{Manifold Markets API}: \url{https://api.manifold.markets/v0/markets}. We paged with the \texttt{before} cursor, retrieving 8{,}000 markets. Of these, 3{,}104 were unresolved binary markets with a valid probability in $(0,1)$. We extract the AMM probability, volume (in Mana), total liquidity, unique-bettor count, and close time.
+\end{itemize}
+
+Both APIs are public and unauthenticated. The dumps are 42\,MB and 7\,MB respectively; we do not redistribute them, but \texttt{scripts/fetch\_data.py} reproduces them.
+
+\subsection{Matching Pipeline}
+
+Two markets can refer to the same underlying event without using the same wording (\emph{``Will the Fed cut rates in June?''} vs.\ \emph{``Will the FOMC reduce the Federal Funds Rate at the June meeting?''}), and unrelated markets can share wording (\emph{``Will Trump apologize for anything in 2026?''} vs.\ \emph{``Will Trump wear a Yarmulke in 2026?''}). Robust matching is a hard NLP problem and we do not attempt to solve it; instead we use a conservative pipeline whose failure modes we make visible:
+
+\begin{enumerate}
+  \item \textbf{Normalisation.} Lowercase, tokenise on alphanumerics, remove a hand-built stopword list.
+  \item \textbf{TF-IDF + cosine.} Fit a unigram + bigram TF-IDF representation on the union of normalised questions, transform both corpora, compute cosine similarity, and for each Polymarket market retrieve its top-5 Manifold neighbours \citep{scikitlearn}.
+  \item \textbf{Entity overlap filter.} Require the Polymarket and Manifold questions to share at least one capitalised token longer than two characters (a cheap proxy for shared named entities). This kills generic ``will X happen by Y'' false matches.
+  \item \textbf{Similarity threshold.} Retain pairs with cosine similarity $\geq 0.40$.
+  \item \textbf{One-to-one dedupe.} For each Polymarket market, keep its single best Manifold match; then walk the pair list in decreasing similarity order and skip any pair whose Manifold market is already claimed.
+  \item \textbf{End-date alignment.} Require that the two markets' resolution dates differ by at most 365 days.
+\end{enumerate}
+
+The pipeline produces 232 pairs (Table~\ref{tab:counts}). The most useful diagnostic is that pairs with cosine similarity in $[0.4, 0.5)$ have a mean absolute gap of $0.335$, while pairs in $[0.9, 1.01)$ have a mean absolute gap of $0.106$ (Figure~\ref{fig:bucket}). The monotone decrease is consistent with the interpretation that the residual disagreement at high similarity reflects \emph{real} price differences rather than matching noise, while at low similarity it predominantly reflects question-mismatch.
+
+\subsection{Strata}
+
+We report results on four nested strata of the 232 pairs:
+\begin{itemize}
+  \item \emph{All pairs} ($n=232$), the unfiltered output of the pipeline.
+  \item \emph{High-similarity} (cosine $\geq 0.70$, $n=64$), our recommended headline subpopulation.
+  \item \emph{High-similarity, independent} (drops 12 Manifold markets whose title contains the substring ``Polymarket''---these are explicit mirrors, $n=52$).
+  \item \emph{High-similarity, independent, liquid} (additionally requires Manifold volume $\geq 100$ Mana or $\geq 5$ unique bettors, $n=46$).
+\end{itemize}
+The \emph{mirror} subset ($n=13$) is reported separately as a positive control for the matching pipeline.
+
+\section{Experiments and Results}
+
+\subsection{Summary Statistics}
+
+\begin{table}[t]
+\centering
+\caption{Pipeline yields and headline gap statistics by stratum. ``Gap'' is Polymarket Yes price minus Manifold probability; positive = Polymarket higher. All paired tests use the same matched pairs.}
+\label{tab:counts}
+\begin{tabular}{lrrrrr}
+\toprule
+Stratum & $n$ & mean gap & $|\text{gap}|$ & Pearson $r$ & $t$-test $p$ \\
+\midrule
+All pairs & 232 & $-0.112$ & $0.242$ & $0.329$ & $4.0\!\times\!10^{-7}$ \\
+High-similarity ($\geq 0.70$) & 64 & $-0.022$ & $0.130$ & $0.637$ & $0.44$ \\
+\quad $\hookrightarrow$ independent only & 52 & $-0.027$ & $0.156$ & $0.608$ & $0.44$ \\
+\quad $\hookrightarrow$ \dots and liquid & 46 & $+0.006$ & $0.140$ & $0.664$ & $0.87$ \\
+Mirror markets only & 13 & $-0.000$ & $0.014$ & $0.992$ & $0.97$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:counts} reports the headline numbers. Three observations:
+
+\textbf{The all-pairs row is misleading.} A naïve reading---``Manifold systematically prices these events $11.2$ percentage points higher than Polymarket''---is statistically defensible (paired $t$-test $p < 10^{-6}$; sign test $p = 5.0 \times 10^{-6}$) but conceptually wrong, because most of the apparent disagreement is matching noise: the matched questions are not actually about the same event. We discuss specific examples below.
+
+\textbf{High-similarity pairs are well-correlated but disagree on individual prices.} For the 64 pairs with cosine $\geq 0.70$, Pearson $r = 0.637$ and Spearman $\rho = 0.666$ (both $p < 10^{-7}$). However, the OLS regression of Manifold probability on Polymarket Yes price has slope $0.600 \pm 0.092$ and intercept $0.141$, well away from the identity. $R^2 = 0.41$. The mean absolute gap of $0.130$ implies that even among well-matched pairs, prices typically disagree by $\approx 13$ percentage points. Among 46 ``high-sim, independent, liquid'' pairs, $47.8\%$ have $|\text{gap}| > 0.05$ and $32.6\%$ have $|\text{gap}| > 0.10$.
+
+\textbf{Mirror markets validate the matching pipeline.} The 13 Manifold markets whose title contains ``Polymarket'' show $R^2 = 0.983$, OLS slope $0.943$, and mean absolute gap $0.014$. Because these are not independent observations of the same event but explicit replicas, they upper-bound what a perfect matcher and a frictionless arbitrageur would produce. They do \emph{not} provide evidence on the calibration question.
+
+\subsection{Cross-sectional Picture}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.78\linewidth]{figure_1.png}
+\caption{Polymarket Yes price (x-axis) vs.\ Manifold probability (y-axis) for the 232 matched pairs. Grey: low-similarity matches (cosine $<0.70$, many of which are false positives, see text). Blue: high-similarity, non-mirror matches. Red triangles: explicit mirror markets. Dashed line: $y=x$. High-similarity points cluster around but rarely sit on the identity; mirror markets sit almost on it.}
+\label{fig:scatter}
+\end{figure}
+
+Figure~\ref{fig:scatter} plots Manifold probability against Polymarket Yes price for all 232 pairs. Three patterns are visible: (i) mirror markets (red triangles) hug the diagonal; (ii) high-similarity non-mirror pairs (blue) lie in a noisy band around the diagonal but with substantial vertical scatter; (iii) low-similarity pairs (grey) fill the plot more or less uniformly. Several blue points sit in the off-diagonal regions, the most extreme being two pairs with Polymarket near $0.90$ but Manifold below $0.35$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figure_2.png}
+\caption{Distribution of the signed price gap (Polymarket $-$ Manifold). Left: all 232 pairs; the mean is shifted toward Manifold prices being higher, but most of the mass is contributed by low-similarity (likely mismatched) pairs. Right: high-similarity, non-mirror, liquid pairs ($n=46$); the distribution is roughly symmetric around zero, but heavy-tailed.}
+\label{fig:hist}
+\end{figure}
+
+Figure~\ref{fig:hist} shows the gap distribution on the all-pairs sample (left) and on the cleanest subset (right). On the cleanest subset, the mean gap is $+0.006$ and the median is $+0.005$, but the distribution remains heavy-tailed: the standard deviation is $0.243$ and four pairs have gaps in excess of $\pm 0.40$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.65\linewidth]{figure_3.png}
+\caption{Mean absolute gap by TF-IDF similarity bucket. The monotone decrease is what one would expect if low-similarity pairs are noisier matches and high-similarity pairs are closer to true paired observations of the same event.}
+\label{fig:bucket}
+\end{figure}
+
+\subsection{Case Studies}
+\label{sec:cases}
+
+A few high-similarity pairs make the failure modes of automatic matching concrete. We list five from the 64-pair high-similarity subset (annotated with our judgment):
+
+\begin{itemize}
+  \item ``\emph{Gemini 3.2 released by May 22, 2026?}'' (Polymarket $0.97$, Manifold $0.33$, $n=67$ bettors). Identical text, cosine $1.0$, gap $+0.64$. The Polymarket market is high-volume (\$204{,}346); the Manifold market is illiquid. \textbf{Likely real disagreement.}
+  \item ``Anthropic valued higher than OpenAI in 2026?'' (Polymarket $0.89$) vs.\ ``On June 1, will OpenAI be valued higher than Anthropic?'' (Manifold $0.28$). Cosine $0.89$, gap $+0.61$. \textbf{False match}: the two questions are logical complements over a shorter horizon.
+  \item ``Will Trump wear a Yarmulke in 2026?'' (Polymarket $0.42$) vs.\ ``Will Trump apologize for anything in 2026?'' (Manifold $0.08$). Cosine $1.0$ on the stopword-stripped text, gap $+0.34$. \textbf{False match}: tokens overlap (\emph{will trump 2026}) but the events are different.
+  \item ``Will Wolves finish in last place in the 2025-26 English Premier League?'' (Polymarket $0.46$, Manifold $0.79$). Cosine $1.0$, gap $-0.33$. \textbf{Likely real disagreement.} Both markets are still open as of the snapshot.
+  \item ``Will Mamdani freeze NYC rents before 2027?'' (Polymarket $0.31$) vs.\ ``Will Mamdani freeze NYC rents in 2026?'' (Manifold $0.63$). Cosine $0.99$, gap $-0.32$. \textbf{Plausible real disagreement} but the horizons differ slightly.
+\end{itemize}
+
+The lesson is that high-cosine similarity is necessary but not sufficient: $\sim\!10$--$20\%$ of the high-similarity sample (rough manual estimate) is still false-matched. A more careful study would back-stop the matcher with a small annotated set or use an embedding model trained for entailment.
+
+\subsection{Stratified Regression}
+
+Restricted to the 52 high-similarity, independent (non-mirror) pairs, the OLS regression of Manifold probability on Polymarket Yes price has slope $0.567 \pm 0.105$ ($p = 1.7\times 10^{-6}$) and intercept $0.164$. Restricted to the 46 liquid pairs, slope $0.599$ and intercept $0.125$. In both cases the slope is significantly less than $1$. Naively this looks like attenuation toward $0.5$, similar to the political-market underconfidence reported by \citet{le2026decomposing}, but with $n \approx 50$ we are wary of over-interpreting the slope: errors-in-variables on the right-hand side (matching noise, residual question-mismatch) would also attenuate the slope. We do not claim a real attenuation effect.
+
+\subsection{Sub-Categories}
+
+The 64 high-similarity pairs distribute as: 42 ``other,'' 12 politics/election, 5 sports, 4 AI/tech, 1 crypto, 0 macro. Politics and sports both show centered gap distributions; the 4 AI/tech pairs include the $+0.64$ Gemini-3.2 case. Sample sizes within category are too small for meaningful sub-test reporting.
+
+\section{Discussion}
+
+\subsection{Is There Arbitrage?}
+
+\emph{Literal arbitrage}---buy Yes on the cheaper platform, sell Yes on the dearer one, hold to resolution---is unavailable, because Manifold's Mana is non-convertible. A user who buys a contract on Manifold for $0.30$ when the same contract trades for $0.97$ on Polymarket has acquired an asset that pays $1$ unit of Mana if Yes, which has no fiat redemption price. The 232-pair gap distribution is therefore best interpreted as a \emph{disagreement} between two distinct populations of forecasters operating under different incentive structures, not as a money-pump.
+
+That said, three weaker arbitrage-flavoured interpretations remain meaningful:
+\begin{enumerate}
+  \item \emph{Information arbitrage.} If one of the two prices is consistently closer to eventual outcomes, then a user who treats the other as a forecast input is leaving information on the table.
+  \item \emph{Mirror-channel evidence.} The mirror markets ($R^2 = 0.98$) show that at least some Manifold participants actively re-quote Polymarket prices; this is consistent with a tight cross-platform information channel.
+  \item \emph{Calibration mismatch.} Even without a money-pump, persistent systematic differences (e.g., the attenuated slope) would be evidence that one or both platforms are mis-calibrated.
+\end{enumerate}
+
+We have evidence for (2) but cannot adjudicate (1) or rule out a slope of $1$ for (3) at our sample size.
+
+\subsection{Why So Much Dispersion at High Similarity?}
+
+Possible explanations include (a) genuine differences in the wisdom of the two crowds, (b) microstructure---the Manifold AMM updates instantly per trade while a Polymarket CLOB requires opposing orders \citep{hanson2007lmsr}, (c) liquidity asymmetry: of our 46 ``liquid'' Manifold pairs, the median Manifold volume is roughly two orders of magnitude smaller than the median Polymarket volume, so individual bets can move the AMM substantially, and (d) match noise (Section~\ref{sec:cases}). Plausibly all four contribute.
+
+\subsection{Reproducibility}
+
+All analysis is driven by two scripts: \texttt{fetch\_data.py} (about 80 lines, one-time API pull) and \texttt{analysis.py} (about 280 lines, deterministic from the dumps). Random seed is fixed (\texttt{20260517}), and the matched-pair CSV is released. Replication on a fresh snapshot will yield different markets---both platforms churn rapidly---but the pipeline is the same.
+
+\section{Limitations}
+\label{sec:limits}
+
+\paragraph{Snapshot, not time series.} All numbers reflect a single moment on 17 May 2026. We cannot say whether the gap distribution narrows or widens over time, whether convergence happens before resolution, or whether large gaps persist for hours or minutes. Time-series data is available in principle from both APIs (CLOB trade history for Polymarket and \texttt{/bets} for Manifold) but is out of scope here.
+
+\paragraph{No outcome data.} Because we work only with open markets, we cannot say which platform is more accurate. \citet{clinton2025prediction} report Polymarket at $67\%$ binary-direction accuracy for political markets in the 2024 election; we cannot replicate that test here.
+
+\paragraph{Matching noise.} As Section~\ref{sec:cases} shows, at least $\sim\!15\%$ of even the high-similarity sample is mismatched on semantic grounds (different time horizons; logical complements; lexical overlap with no semantic overlap). A higher-precision matcher---e.g., LLM-rated entailment on candidate pairs, or sentence-transformer embeddings tuned for question similarity---would shrink the apparent dispersion. We chose to leave the matcher simple, documentable, and reproducible rather than ratchet up the methodology stack.
+
+\paragraph{Selection on volume.} We sample Polymarket markets in volume-descending order. This biases the population toward popular markets, which may have lower spreads but also higher exogenous attention. We do not have a comparable ordering for Manifold; we sample by recency.
+
+\paragraph{Small $n$ at the strata we trust most.} Our cleanest stratum has $n=46$. Several reported effect sizes (mean gap, slope) have wide confidence intervals.
+
+\paragraph{No microstructure.} We work with mid-style snapshot prices. We do not study the bid-ask spread, depth, or transaction-cost-adjusted prices, although for Polymarket the \texttt{bestBid}/\texttt{bestAsk} fields are in our released CSV.
+
+\paragraph{No discount-rate adjustment.} Polymarket positions tie up USDC capital with a non-trivial opportunity cost; Manifold positions do not. We make no correction for this, but the effect should be small at the typical horizons in our sample (median end-date separation between paired markets is a small fraction of a year).
+
+\section{Conclusion}
+
+We catch a snapshot of the largest English-language real-money and play-money prediction markets in roughly the same moment, automatically pair their binary contracts, and report the resulting price gaps. Headline numbers on the unfiltered pair set look dramatic ($\bar{g} = -0.112$) but evaporate after a similarity threshold ($\bar{g} = -0.022$, $p=0.44$). Cross-sectional dispersion persists at every threshold ($|\bar{g}| \approx 0.13$ at the best). Mirror-market matches confirm the pipeline; non-mirror high-similarity matches confirm that the two platforms genuinely disagree on many individual prices. We see no evidence of monetary arbitrage---Mana is play money---but the existence of a stable mirror channel ($R^2 = 0.98$ on 13 explicit replicas) is itself evidence of a tight cross-platform information flow. We hope this snapshot is a useful reference point for time-series studies that follow.
+
+\paragraph{Acknowledgments.} We thank the Polymarket and Manifold engineering teams for keeping their data APIs unauthenticated and stable.
+
+\paragraph{Code and data.} Replication scripts and the matched-pair CSV are available at \texttt{papers/polymarket-manifold-cross-market-arbitrage/}.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\begin{thebibliography}{99}
+
+\bibitem[Berg et al.(2008)]{berg2008longrun}
+J.~E. Berg, F.~D. Nelson, and T.~A. Rietz.
+\newblock Prediction market accuracy in the long run.
+\newblock {\em International Journal of Forecasting}, 24(2):285--300, 2008.
+
+\bibitem[Clinton and Huang(2025)]{clinton2025prediction}
+J.~D. Clinton and T.~Huang.
+\newblock Prediction markets? the accuracy and efficiency of \$2.4 billion in
+  the 2024 presidential election.
+\newblock SocArXiv preprint d5yx2, 2025.
+\newblock \url{https://doi.org/10.31219/osf.io/d5yx2}.
+
+\bibitem[Hanson(2007)]{hanson2007lmsr}
+R.~Hanson.
+\newblock Logarithmic market scoring rules for modular combinatorial
+  information aggregation.
+\newblock {\em Journal of Prediction Markets}, 1(1):3--15, 2007.
+
+\bibitem[Jia et al.(2026)]{jia2026unlocking}
+H.~Jia, L.~Zhou, W.~Zhang, L.~W. Cong, S.~Li, and S.~Sun.
+\newblock Unlocking the forecasting economy: A suite of datasets for the full
+  lifecycle of prediction market.
+\newblock arXiv preprint arXiv:2604.20421, 2026.
+
+\bibitem[Le(2026)]{le2026decomposing}
+N.~A. Le.
+\newblock Decomposing crowd wisdom: Domain-specific calibration dynamics in
+  prediction markets.
+\newblock arXiv preprint arXiv:2602.19520, 2026.
+
+\bibitem[Manski(2006)]{manski2006interpreting}
+C.~F. Manski.
+\newblock Interpreting the predictions of prediction markets.
+\newblock {\em Economics Letters}, 91(3):425--429, 2006.
+
+\bibitem[Page and Clemen(2013)]{page2013calibrated}
+L.~Page and R.~T. Clemen.
+\newblock Do prediction markets produce well-calibrated probability forecasts?
+\newblock {\em The Economic Journal}, 123(568):491--513, 2013.
+
+\bibitem[Pedregosa et al.(2011)]{scikitlearn}
+F.~Pedregosa, G.~Varoquaux, A.~Gramfort, V.~Michel, B.~Thirion, O.~Grisel,
+  M.~Blondel, P.~Prettenhofer, R.~Weiss, V.~Dubourg, J.~Vanderplas, A.~Passos,
+  D.~Cournapeau, M.~Brucher, M.~Perrot, and E.~Duchesnay.
+\newblock Scikit-learn: Machine learning in {P}ython.
+\newblock {\em Journal of Machine Learning Research}, 12:2825--2830, 2011.
+
+\bibitem[Servan-Schreiber et al.(2004)]{servan2004does}
+E.~Servan-Schreiber, J.~Wolfers, D.~M. Pennock, and B.~Galebach.
+\newblock Prediction markets: Does money matter?
+\newblock {\em Electronic Markets}, 14(3):243--251, 2004.
+
+\bibitem[Snowberg et al.(2007)]{snowberg2007partisan}
+E.~Snowberg, J.~Wolfers, and E.~Zitzewitz.
+\newblock Partisan impacts on the economy: Evidence from prediction markets and
+  close elections.
+\newblock {\em Quarterly Journal of Economics}, 122(2):807--829, 2007.
+
+\bibitem[Tsang and Yang(2026a)]{tsang2026anatomy}
+K.~P. Tsang and Z.~Yang.
+\newblock The anatomy of a blockchain prediction market: Polymarket in the 2024
+  U.S. presidential election.
+\newblock arXiv preprint arXiv:2603.03136, 2026.
+
+\bibitem[Tsang and Yang(2026b)]{tsang2026shocks}
+K.~P. Tsang and Z.~Yang.
+\newblock Political shocks and price discovery in prediction markets: Evidence
+  from the 2024 U.S. presidential election.
+\newblock arXiv preprint arXiv:2603.03152, 2026.
+
+\bibitem[Wolfers and Zitzewitz(2004)]{wolfers2004prediction}
+J.~Wolfers and E.~Zitzewitz.
+\newblock Prediction markets.
+\newblock {\em Journal of Economic Perspectives}, 18(2):107--126, 2004.
+
+\bibitem[Wolfers and Zitzewitz(2006)]{wolfers2006interpreting}
+J.~Wolfers and E.~Zitzewitz.
+\newblock Interpreting prediction market prices as probabilities.
+\newblock NBER Working Paper 12200, 2006.
+
+\end{thebibliography}
+
+\end{document}

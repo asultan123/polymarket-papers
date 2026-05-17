@@ -1,0 +1,16 @@
+# LaTeX build artefacts
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+main.pdf
+
+# Python
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,225 @@
+n_markets_total: 20
+n_markets_svb_direct: 5
+n_markets_contagion: 6
+n_markets_fed: 9
+volume_total_usd: 1.25172e+06
+volume_svb_direct_usd: 82912.7
+volume_contagion_usd: 207792
+volume_fed_usd: 961010
+svb_n_obs_minute: 535
+svb_first_seen: 2023-03-10 14:21:31+00:00
+svb_creation_price: 0.5
+svb_max_price: 0.99
+svb_cross_0.55_ts: 2023-03-10 16:31:44+00:00
+svb_minutes_creation_to_0.55: 130.217
+svb_cross_0.70_ts: 2023-03-10 16:42:53+00:00
+svb_minutes_creation_to_0.70: 141.367
+svb_cross_0.90_ts: 2023-03-10 16:42:53+00:00
+svb_minutes_creation_to_0.90: 141.367
+svb_cross_0.95_ts: 2023-03-10 16:50:20+00:00
+svb_minutes_creation_to_0.95: 148.817
+svb_cross_0.99_ts: 2023-03-10 17:04:14+00:00
+svb_minutes_creation_to_0.99: 162.717
+svb_minutes_0.55_to_0.95: 18.6
+svb_acq_n_obs: 3729
+svb_acq_first_price: 0.5
+svb_acq_last_price: 0.03
+svb_acq_max_price: 1
+svb_acq_max_ts: 2023-03-13 10:00:39+00:00
+third_bank_n_obs: 5896
+third_bank_max_price: 0.77
+third_bank_max_ts: 2023-03-13 17:48:14+00:00
+third_bank_last_price: 0.01
+frc_max_price: 0.5
+frc_n_obs: 3021
+boa_max_price: 0.5
+boa_n_obs: 3018
+cs_first_price: 0.26
+cs_max_price: 0.96
+cs_max_ts: 2023-03-19 16:00:40+00:00
+cs_n_obs_pre_ubs: 92
+cs_max_price_pre_ubs: 0.96
+fed_pivot:
+  hike_0bp_march:
+    pre_mean: 0.0114614
+    post_mean: 0.182049
+    pre_last: 0.01
+    post_first: 0.01
+    n_pre: 479
+    n_post: 283
+  hike_25bp_march:
+    pre_mean: 0.831953
+    post_mean: 0.734523
+    pre_last: 0.56
+    post_first: 0.45
+    n_pre: 466
+    n_post: 283
+  hike_50bp_march:
+    pre_mean: 0.163486
+    post_mean: 0.111413
+    pre_last: 0.44
+    post_first: 0.54
+    n_pre: 479
+    n_post: 283
+  cut_25bp_march:
+    pre_mean: 0.01
+    post_mean: 0.0223322
+    pre_last: 0.01
+    post_first: 0.01
+    n_pre: 479
+    n_post: 283
+fed_pivot_pre_extremes:
+  hike_50bp_march_pre_max:
+    value: 0.45
+    ts: 2023-03-07 22:00:51+00:00
+    first_pre: 0.04
+    last_pre: 0.44
+  hike_25bp_march_pre_min:
+    value: 0.54
+    ts: 2023-03-07 19:00:35+00:00
+    first_pre: 0.88
+    last_pre: 0.56
+fed_cut_2023_pre_svb_mean: 0.160677
+fed_cut_2023_post_svb_mean: 0.445442
+fed_cut_2023_pre_svb_last: 0.13
+fed_cut_2023_post_svb_first: 0.13
+fed_cut_2023_peak: 0.66
+fed_cut_2023_peak_ts: 2023-03-24 14:00:09+00:00
+fed_cut_2023_final: 0.006
+fed_cut_2023_daily_path: [17 items]
+  [0] date=2023-03-06, first=0.16, last=0.16, mean=0.16, min=0.16, max=0.16
+  [1] date=2023-03-07, first=0.16, last=0.13, mean=0.14565217391304347, min=0.13, max=0.16
+  [2] date=2023-03-08, first=0.13, last=0.13, mean=0.13, min=0.13, max=0.13
+  [3] date=2023-03-09, first=0.13, last=0.13, mean=0.13, min=0.13, max=0.13
+  [4] date=2023-03-10, first=0.13, last=0.34, mean=0.3204166666666667, min=0.13, max=0.54
+  [5] date=2023-03-11, first=0.34, last=0.38, mean=0.3678260869565218, min=0.34, max=0.38
+  [6] date=2023-03-12, first=0.38, last=0.38, mean=0.38, min=0.38, max=0.38
+  [7] date=2023-03-13, first=0.38, last=0.45, mean=0.3954166666666667, min=0.38, max=0.45
+  [8] date=2023-03-14, first=0.45, last=0.32, mean=0.42782608695652175, min=0.32, max=0.45
+  [9] date=2023-03-15, first=0.32, last=0.54, mean=0.46260869565217394, min=0.32, max=0.65
+fed_cut_2023_top5_intraday_jumps: [5 items]
+  [0] date=2023-03-10, intraday_range=0.41000000000000003, open=0.13, close=0.34, n=24
+  [1] date=2023-03-15, intraday_range=0.33, open=0.32, close=0.54, n=23
+  [2] date=2023-03-16, intraday_range=0.14, open=0.54, close=0.41, n=22
+  [3] date=2023-03-24, intraday_range=0.14, open=0.53, close=0.61, n=19
+  [4] date=2023-03-14, intraday_range=0.13, open=0.45, close=0.32, n=23
+corr_window_start: 2023-03-01
+corr_window_end: 2023-04-28
+corr_n_days: 42
+daily_corr_fed_cut_vs:
+  KRE:
+    pearson_r: -0.103691
+    p_value: 0.513448
+    n: 42
+  SPY:
+    pearson_r: 0.138822
+    p_value: 0.380609
+    n: 42
+  TLT:
+    pearson_r: 0.0070522
+    p_value: 0.964646
+    n: 42
+  TNX:
+    pearson_r: -0.04022
+    p_value: 0.800352
+    n: 42
+  VIX:
+    pearson_r: -0.137133
+    p_value: 0.386487
+    n: 42
+shock_window_corr_fed_cut_vs:
+  KRE:
+    pearson_r: -0.902451
+    p_value: 3.02417e-07
+    n: 18
+  SPY:
+    pearson_r: 0.353686
+    p_value: 0.149905
+    n: 18
+  TLT:
+    pearson_r: 0.635756
+    p_value: 0.00457158
+    n: 18
+  TNX:
+    pearson_r: -0.834711
+    p_value: 1.6446e-05
+    n: 18
+  VIX:
+    pearson_r: -0.192681
+    p_value: 0.44367
+    n: 18
+shock_window_n: 18
+shock_window: 2023-03-08 to 2023-03-31
+KRE_mar08_close: 57.7
+KRE_mar13_close: 44.45
+KRE_mar17_close: 43.44
+KRE_pct_mar8_to_mar13: -22.9636
+KRE_pct_mar8_to_mar17: -24.714
+TLT_pct_mar8_to_mar13: 3.93832
+TNX_mar8: 3.976
+TNX_mar13: 3.515
+TNX_change_mar8_to_mar13_bps: -46.1
+resolutions:
+  Will SVB fail?:
+    yes: 1
+    no: 0
+  Will SVB be acquired by Monday night?:
+    yes: 0
+    no: 1
+  Will another US bank fail in March?:
+    yes: 1
+    no: 0
+  Will uninsured SVB depositors get all their money back by June 30?:
+    yes: 1
+    no: 0
+  Will uninsured SVB depositors get all their money back by EOY?:
+    yes: 1
+    no: 0
+  Will Silvergate announce it is filing for bankruptcy by March 31, 2023?:
+    yes: 0
+    no: 1
+  Will a third US bank fail by March 17?:
+    yes: 0
+    no: 1
+  Will Credit Suisse fail by March 31?:
+    yes: 1
+    no: 0
+  Will First Republic Bank fail by March 17?:
+    yes: 0
+    no: 1
+  Will First Republic Bank fail by March 31?:
+    yes: 0
+    no: 1
+  Will Bank of America fail by March 17?:
+    yes: 0
+    no: 1
+  Will the Fed cut rates in 2023?:
+    yes: 0
+    no: 1
+  Will the Fed cut rates in March?:
+    yes: 0
+    no: 1
+  Will the Fed increase interest rates by 25 bps after its March meeting?:
+    yes: 1
+    no: 0
+  Will the Fed increase interest rates by 50 bps after its March meeting?:
+    yes: 0
+    no: 1
+  Will the Fed increase interest rates by 0 bps after its March meeting?:
+    yes: 0
+    no: 1
+  Will the Fed decrease interest rates by 25 bps after its March meeting?:
+    yes: 0
+    no: 1
+  Will the Fed increase interest rates by 25 bps after its May meeting?:
+    yes: 1
+    no: 0
+  Will the Fed increase interest rates by 0 bps after its May meeting?:
+    yes: 0
+    no: 1
+  Will the Fed decrease interest rates by 25 bps after its May meeting?:
+    yes: 0
+    no: 1
+hike0_feb_14_28_mean: 0.0121807
+hike0_mar_01_07_mean: 0.01
+hike0_mar_08_14_mean: 0.0929012

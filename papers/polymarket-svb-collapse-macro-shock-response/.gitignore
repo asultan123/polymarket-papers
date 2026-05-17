@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+data/prices/
+data/yahoo/
+data/candidates.json
+data/*_min.csv

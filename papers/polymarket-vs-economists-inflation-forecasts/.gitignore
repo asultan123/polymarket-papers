@@ -1,0 +1,21 @@
+# Cached / generated datasets - reproducible by running scripts/fetch_data.py
+data/
+
+# Python cruft
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+
+# LaTeX build artefacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz

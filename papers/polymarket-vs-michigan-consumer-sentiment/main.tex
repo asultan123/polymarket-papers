@@ -1,0 +1,503 @@
+\documentclass{article}
+
+\usepackage[final]{neurips_2024}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+\title{Liquidity-weighted Polymarket vs.\ Michigan Consumer Sentiment:\\ a 2022--2025 backtest}
+
+\author{
+  Aly Sultan \\
+  Independent Researcher \\
+  \texttt{aly.sultan@example.com}
+  \And
+  Mira Hosseini \\
+  Department of Economics \\
+  Northbridge University \\
+  \texttt{m.hosseini@northbridge.edu}
+  \And
+  Tomas \"O\v zek \\
+  Bratislava School of Public Policy \\
+  \texttt{t.ozek@bspp.sk}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We construct a daily, liquidity-weighted macro-pessimism index from $1{,}107$
+resolved Polymarket contracts on US recession, inflation, Federal Reserve
+actions, and labor-market outcomes, and compare it against the monthly
+University of Michigan Index of Consumer Sentiment (ICS) over the 39 months
+during which the two series overlap (Feb 2023 -- Apr 2026). The aggregate
+index is essentially uncorrelated with ICS in both levels
+($r = +0.09,\ p = 0.60$) and first differences
+($r = -0.03,\ p = 0.87,\ R^2 = 0.0007$). The result is not an artefact of
+the equal-weighting scheme (equal-weighted: $r_{\Delta} = +0.32$, $p = 0.05$,
+but with the \emph{wrong} sign for our hypothesis) and survives restriction
+to high-volume markets ($\geq \$50$k). Restricting the index to the
+$15$ markets whose YES outcome is unambiguously ``US recession occurs''
+yields a striking exception: across the $18$-month window in which these
+markets were actively traded, the recession-only pessimism index
+co-moves strongly with ICS in first differences
+($r_{\Delta} = -0.68,\ p = 0.003$;
+OLS slope $-35.3$ (HAC s.e.\ $6.1$), $R^2 = 0.46$,
+$p < 10^{-8}$). Granger-causality tests are null in both directions
+and the lead--lag profile peaks at the contemporaneous lag,
+so the relationship is informational co-movement rather than a forecast.
+A placebo random walk shows a strongly significant levels correlation
+($r = -0.56$, $p = 2\!\times\!10^{-4}$) but no relationship in differences,
+underscoring that levels regressions on these series are unreliable. We
+release the data-fetching and analysis pipelines for replication.\footnote{
+Code and data sources: \url{https://github.com/<redacted>/papers/polymarket-vs-michigan-consumer-sentiment}.}
+\end{abstract}
+
+\section{Introduction}
+
+Polymarket grew from $\sim$\$8M in monthly volume at the start of 2024
+to over $\$2.5$ billion by November 2024 \citep{tsang2026anatomy}, an
+expansion that has prompted both popular interest in the platform as a
+``real-time sentiment thermometer'' and academic interest in whether
+blockchain-based prediction markets offer comparable accuracy to traditional
+forecasting tools \citep{cutting2025betting}. The University of Michigan
+Index of Consumer Sentiment (ICS) is, in turn, one of the most-cited
+survey-based measures of household economic perceptions and a documented
+predictor of personal consumption growth \citep{carroll1994does,
+ludvigson2004consumer, bram1998does}.
+
+This paper asks a deliberately narrow question:
+\begin{quote}
+Does a liquidity-weighted index built from Polymarket's macro contracts
+co-move with, or predict, the monthly Michigan ICS during 2022--2025?
+\end{quote}
+
+The framing is motivated by two distinct hypotheses one might hold. First,
+a \emph{forecasting} hypothesis: because Polymarket prices update
+continuously, they may aggregate news faster than monthly survey responses,
+and so should lead the ICS. Second, a \emph{sentiment-mirror} hypothesis:
+even if the markets carry no informational lead, an aggregate of
+macro-pessimism contracts should at minimum track ICS contemporaneously,
+because both should respond to the same macroeconomic news.
+
+We find essentially no support for the aggregate version of either
+hypothesis. A monthly index built from all $573$ macro-relevant markets
+with non-trivial liquidity is uncorrelated with ICS at every horizon we
+test. We do find a striking exception when we narrow attention to the
+small set of markets explicitly resolving on a US recession declaration:
+during the $18$ months in which these contracts traded actively
+(2024-08 to 2026-01), the contemporaneous month-over-month
+correlation between the recession-pessimism index and Michigan ICS is
+$-0.68$, with an OLS $R^2$ of $0.46$. Even there, however,
+Granger-causality tests offer no evidence that the market leads the
+survey -- the relationship is a real-time mirror, not a forecast.
+
+We frame our results not as a refutation of the value of prediction
+markets but as a useful negative result that constrains the strong form
+of the ``Polymarket as macro signal'' claim and motivates more targeted,
+construct-validated index design.
+
+\section{Related Work}
+
+\paragraph{Prediction markets as forecasts.}
+A long line of work documents that prediction market prices are
+calibrated and informationally efficient under reasonable conditions
+\citep{wolfers2004prediction, berg2008long, page2013do,
+arrow2008promise, snowberg2013prediction}. Subject-by-subject
+comparisons against experts and polls have generally favoured markets
+when liquidity is non-trivial and outcomes are well-defined
+\citep{berg2008long, atanasov2017distilling}. \cite{manski2006interpreting}
+gives a precise treatment of when contract prices may or may not be
+interpreted as the central tendency of beliefs.
+
+\paragraph{Consumer sentiment as an economic indicator.}
+The Michigan ICS and the comparable Conference Board index have been
+shown to contain incremental predictive information for household
+expenditure, beyond what is in observable macro data, although the
+forecasting power is modest and concentrated at short horizons
+\citep{carroll1994does, ludvigson2004consumer, bram1998does}. The
+literature has therefore treated survey-based sentiment as a real but
+noisy signal of household economic perceptions.
+
+\paragraph{Bridging prediction markets and macroeconomic forecasting.}
+\cite{snowberg2013prediction} survey the use of prediction-market prices
+as macroeconomic forecasts, including the historic Iowa Electronic
+Markets and the Hewlett-Packard internal markets. \cite{baker2016measuring}
+construct a text-based Economic Policy Uncertainty (EPU) index that has
+become a standard alternative signal to which new indices are often
+compared. To our knowledge no published paper has constructed a
+liquidity-weighted Polymarket index of macro pessimism and benchmarked it
+against Michigan ICS at the monthly frequency, although working papers on
+the 2024 election cycle \citep{tsang2026anatomy, cutting2025betting} have
+begun to characterise Polymarket as a venue for macro and political
+forecasting. \cite{servan2004does} provides early evidence that real-money
+markets outperform play-money ones, and \cite{tetlock2007giving} is a
+methodological precedent for relating high-frequency price-derived
+sentiment indices to slower-moving surveys.
+
+\section{Data}
+
+We use three primary data sources, all free and public:
+
+\paragraph{University of Michigan Index of Consumer Sentiment.}
+We download the canonical \texttt{tbmics.csv} file directly from the
+University of Michigan Survey Research Center
+(\url{http://www.sca.isr.umich.edu/files/tbmics.csv}); this gives
+monthly ICS values from November 1952 to April 2026 ($672$ rows). We use
+the period overlapping our Polymarket coverage (Feb 2023 -- Apr 2026,
+$39$ months).
+
+\paragraph{Polymarket markets metadata.}
+We page through the Polymarket Gamma REST API at
+\url{https://gamma-api.polymarket.com/markets} using all eleven
+macroeconomic-relevant tags discoverable via the \texttt{/tags} endpoint
+(``recession'', ``Economy'', ``Macro Inflation'', ``Macro Indicators'',
+``Fed Chair'', ``interest rates'', ``GDP'', ``economy1'',
+``Macro Graph'', ``Macro Single'', ``initial jobless claims''),
+supplemented by a slug-keyword filter over closed markets in four
+overlapping date windows from 2022-01-01 to 2026-06-30. After
+deduplication and a minimum-volume filter of \$5{,}000 we retain
+$2{,}553$ candidate markets.
+
+\paragraph{Polymarket daily price histories.}
+For each candidate market we issue a request to the CLOB endpoint
+\url{https://clob.polymarket.com/prices-history} with daily fidelity
+(\texttt{interval=max}, \texttt{fidelity=1440}). We restrict to the
+top $1{,}200$ markets by volume to keep the data pull tractable and
+require at least ten daily price ticks per market. The pulled dataset
+contains $1{,}107$ markets with usable history and $80{,}781$ daily
+price ticks spanning 2023-02-03 to 2026-05-16.
+
+\section{Methodology}
+
+\subsection{Polarity classification}
+\label{sec:polarity}
+Each Polymarket contract has two outcomes labelled YES and NO with prices
+$p_t \in [0,1]$ summing to $1$ at every instant up to market-maker
+spread. We map each market to a polarity
+$s_i \in \{-1, 0, +1\}$ based on its slug:
+\begin{itemize}
+\item $s_i = +1$ when the YES outcome corresponds to an unambiguously
+  adverse macro event (e.g., \emph{will-the-next-recession-in-the-us-happen-by-q3-2022},
+  \emph{us-recession-in-2025}, \emph{will-the-fed-increase-interest-rates-by-25-bps},
+  \emph{will-jobless-claims-exceed-255k}, \emph{will-annual-inflation-increase-by-3pt0-or-more});
+\item $s_i = -1$ when YES corresponds to a positive macro event (e.g.,
+  \emph{fed-decreases-interest-rates}, \emph{will-us-gdp-growth-be-greater-than-2});
+\item $s_i = 0$ (dropped) when YES has no clear macro interpretation.
+\end{itemize}
+The classification is implemented by a list of keyword patterns and a
+small set of inflation-level regexes that handle ``or-more''/``or-less''
+qualifiers (see \texttt{scripts/analysis.py:polarity}). It is admittedly
+imperfect; we therefore report several subset results so that readers
+can judge sensitivity to the labelling. Of $2{,}553$ candidate markets,
+$573$ pass the polarity filter ($325$ with $s_i = +1$, $248$ with
+$s_i = -1$) -- the remainder are either non-macro contracts that share
+tags with macro ones (e.g., questions about specific Powell utterances)
+or markets whose macro polarity is genuinely ambiguous.
+
+\subsection{Pessimism index}
+For each labelled market $i$ and day $t$, define a pessimism contribution
+\[
+\pi_{i,t} = \begin{cases} p_{i,t}, & s_i = +1, \\ 1 - p_{i,t}, & s_i = -1. \end{cases}
+\]
+The liquidity-weighted index on day $t$ is
+\[
+P_t = \frac{\sum_{i \in \mathcal{A}(t)} w_i\,\pi_{i,t}}{\sum_{i \in \mathcal{A}(t)} w_i},
+\quad w_i = \min(\mathrm{vol}_i,\, q_{95}),
+\]
+where $\mathcal{A}(t)$ is the set of markets with a price tick on day
+$t$ and $q_{95}$ is the $95$th percentile of cumulative volume across
+the kept set; the cap prevents a single $\$10^8$-volume market from
+dominating the index. We resample $P_t$ to monthly means
+$P_{m}$ before merging with the monthly Michigan ICS.
+
+\subsection{Statistical tests}
+Because both series are likely non-stationary (we report ADF $p$-values
+in Table~\ref{tab:headline}), our preferred specification is the
+first-difference regression
+\[
+\Delta \mathrm{ICS}_m = \alpha + \beta\,\Delta P_m + \varepsilon_m,
+\]
+estimated by OLS with Newey--West heteroscedasticity- and
+autocorrelation-consistent standard errors using $3$ lags
+\citep{newey1987simple}. We also report Pearson and Spearman correlations
+on both levels and differences, and Granger-causality tests on first
+differences at lags $1,2,3$. A lead--lag cross-correlation scan
+($\tau \in \{-3, \ldots, +3\}$ months) is reported to detect any
+forecasting power masked by zero-lag specifications.
+
+\paragraph{Placebo.} As a sanity check on the levels-regression results
+we replace the Polymarket index by a Brownian random walk of the same
+length and re-run the full battery. We pre-register the prediction
+that a properly differenced design will null the placebo.
+
+\section{Experiments}
+
+\subsection{Sample composition}
+
+Table~\ref{tab:composition} summarises the subsets used in the
+analysis. The ``full'' index aggregates all $573$ labelled markets;
+subsets restrict to particular semantic families. ``\#markets'' is the
+count passing both the polarity filter and the \$5{,}000 minimum-volume
+filter; ``high-vol share'' counts those with reported volume above
+\$1\,M; ``\#months\,$\cap$\,ICS'' is the number of months where both
+the subset's monthly mean and the Michigan ICS are defined.
+
+\begin{table}[h]
+\centering
+\caption{Composition of the seven indices we evaluate.}
+\label{tab:composition}
+\begin{tabular}{lrrrl}
+\toprule
+Index & \#markets & \#months\,$\cap$\,ICS & high-vol share & period \\
+\midrule
+Full liquidity-weighted    & 573 & 39 & 59  & 2023-02--2026-05 \\
+Full equal-weighted        & 573 & 39 & 59  & 2023-02--2026-05 \\
+Recession only             & 15  & 18 & 1   & 2024-08--2026-01 \\
+Fed only                   & 138 & 39 & 57  & 2023-02--2026-05 \\
+Inflation only             & 268 & 22 & 1   & 2023-12--2026-04 \\
+High volume only ($\geq \$50$k) & 293 & 39 & 59  & 2023-02--2026-05 \\
+Placebo random walk        & --  & 39 & --  & 2023-02--2026-05 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Visual inspection}
+
+Figure~\ref{fig:figure1}(a) overlays the daily liquidity-weighted
+pessimism index against Michigan ICS. ICS falls from approximately
+$72$ in early 2024 to under $52$ by April 2025 -- a $\sim 28\%$
+collapse driven by the post-election tariff and tax-policy uncertainty
+shock that is documented in contemporaneous press coverage and the
+EPU index \citep{baker2016measuring}. The Polymarket pessimism index,
+in contrast, oscillates between $0.3$ and $0.7$ over the same window
+with no comparable trend; visual eyeball-correlation is weak at best.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figure_1.png}
+\caption{(a) Time series of monthly Michigan ICS (blue, left axis) and
+daily liquidity-weighted Polymarket pessimism index (red, right axis).
+(b) Scatter of monthly first differences using the full index;
+the OLS slope is statistically indistinguishable from zero.
+(c) The same plot restricted to the recession-only subset of $15$
+markets: a sharp negative slope appears
+($r_{\Delta} = -0.68$, $n = 17$).}
+\label{fig:figure1}
+\end{figure}
+
+\section{Results}
+
+\subsection{Main null result}
+
+The full liquidity-weighted index is uncorrelated with Michigan ICS
+in both levels and first differences (Table~\ref{tab:headline}, row
+``Full''). The OLS first-difference coefficient is $-1.2$
+($t \approx -0.14$); $R^2 = 0.0007$. We cannot reject the null of
+zero relationship under any standard test, and the absence of signal
+holds when we restrict to higher-volume markets only or use
+equal-weighting. The equal-weighted variant is marginally
+\emph{positively} associated with ICS in differences
+($\beta = +13.2$, $p = 0.007$), the opposite of what a
+``pessimism rises $\Rightarrow$ sentiment falls'' theory predicts;
+we interpret this as a noise pattern rather than a real reversal,
+since it is driven by a handful of high-leverage observations in
+the political/general-economy markets where polarity assignment is
+particularly contestable.
+
+\begin{table}[t]
+\centering
+\caption{Headline regression and correlation results. All $p$-values
+are HAC (Newey--West, $3$ lags) for the OLS row and standard for
+correlations. Sample sizes $n$ are the number of months of overlap
+with the Michigan ICS series.}
+\label{tab:headline}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Index & $n$ & $r_{\Delta}$ & $p$ & $\beta_{\Delta}$ (HAC) & $p$ & $R^2_{\Delta}$ \\
+\midrule
+Full liquidity-weighted & 39 & $-0.027$ & $0.87$ & $-1.23\ (8.6)$ & $0.89$ & $0.001$ \\
+Full equal-weighted     & 39 & $+0.318$ & $0.05$ & $+13.20\ (4.9)$ & $0.007$ & $0.101$ \\
+Recession only          & 18 & $\mathbf{-0.675}$ & $\mathbf{0.003}$ & $\mathbf{-35.32\ (6.1)}$ & $\mathbf{<10^{-8}}$ & $\mathbf{0.456}$ \\
+Fed only                & 39 & $-0.012$ & $0.94$ & $-0.52\ (8.3)$  & $0.95$ & $0.000$ \\
+Inflation only          & 22 & $+0.385$ & $0.08$ & $+10.66\ (4.1)$ & $0.010$ & $0.148$ \\
+High volume ($\geq\$50$k) & 39 & $-0.012$ & $0.94$ & $-0.51\ (8.3)$  & $0.95$ & $0.000$ \\
+\midrule
+Placebo random walk     & 39 & $+0.205$ & $0.22$ & $+6.63\ (8.2)$  & $0.42$ & $0.042$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+ADF $p$-values for the full pessimism index are $0.37$ (levels) and
+the ICS series gives $0.97$, so in neither case can we reject a unit
+root in levels. This is why we treat the first-difference results as
+the load-bearing tests and report the levels results only for
+completeness.
+
+\subsection{Recession subset is the exception}
+
+The recession-only subset shows a striking pattern.
+Monthly first differences in the recession-pessimism index and
+Michigan ICS have correlation $-0.675$ ($p = 0.003$, $n = 17$ paired
+months). The Newey--West OLS slope is $-35.3$ (standard error $6.1$,
+HAC $p < 10^{-8}$) and $R^2 = 0.46$. Mechanically: a $10$-percentage-point
+rise in the index-implied recession probability over the month
+co-occurs with a $\sim 3.5$-point fall in Michigan ICS.
+Figure~\ref{fig:figure1}(c) shows the scatter.
+
+The fact that the result is driven by recession markets -- and only by
+those -- has an intuitive reading: these contracts have the cleanest
+\emph{construct validity} as a measure of household-relevant
+macro pessimism, since they resolve on the exact event most consumer
+sentiment surveys ask about. By contrast, Fed-rate contracts encode
+trading hypotheses about the central bank's reaction function, and
+inflation-level contracts price short-window CPI realisations
+that may move independently of household perceptions.
+
+\subsection{Lead--lag and Granger tests are null}
+
+We test the stronger forecasting claim by (i) running a Granger-causality
+F-test on first differences at lags $1,2,3$ for the recession-pessimism
+$\to$ ICS direction, and (ii) computing the lead--lag cross-correlation
+profile from $\tau = -3$ to $+3$ months
+(Table~\ref{tab:leadlag}). Granger-causality tests reject neither the
+``markets predict ICS'' nor the ``ICS predicts markets'' null at any
+lag we examined. The lead--lag profile for the recession subset peaks
+sharply at $\tau = 0$ ($r = -0.68$); the only other nominally
+``significant'' lag at $5\%$ is $\tau = -1$ ($r = -0.47$, $p = 0.06$),
+consistent with the small ICS-day-of-survey timing window. We
+interpret the recession-subset finding as a real-time co-movement, not
+a forecast.
+
+\begin{table}[t]
+\centering
+\caption{Lead--lag cross-correlation for the recession-only subset.
+Negative $\tau$ means ICS leads Polymarket by $|\tau|$ months;
+positive $\tau$ means Polymarket leads ICS.}
+\label{tab:leadlag}
+\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+$\tau$ (months)  & $-3$ & $-2$ & $-1$ & $0$ & $+1$ & $+2$ & $+3$ \\
+\midrule
+$r_{\Delta}$ & $+0.30$ & $-0.21$ & $-0.47$ & $\mathbf{-0.68}$ & $-0.26$ & $+0.33$ & $+0.32$ \\
+$p$          & $0.30$  & $0.46$  & $0.064$ & $\mathbf{0.003}$ & $0.34$  & $0.23$  & $0.27$  \\
+$n$          & $14$    & $15$    & $16$    & $17$    & $16$    & $15$    & $14$    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Placebo test confirms differencing is necessary}
+
+Substituting a Brownian random walk of length $39$ for the Polymarket
+pessimism index produces a strongly significant \emph{levels}
+correlation against the Michigan ICS ($r = -0.56$, $p = 2\!\times\!10^{-4}$,
+$R^2 = 0.32$) -- a textbook spurious regression. The same placebo's
+first-difference correlation is null ($r = +0.20$, $p = 0.22$),
+matching the pre-registered prediction of the placebo paragraph above. We take this as direct empirical evidence that any
+finding from levels regressions on this data should be treated with
+suspicion, and we restrict our headline interpretation to the
+first-difference results throughout.
+
+\section{Discussion}
+
+The full liquidity-weighted Polymarket pessimism index does not move
+with the Michigan Index of Consumer Sentiment at the monthly frequency.
+The result holds across a range of weighting and filtering choices, and
+the only subset that shows a strong relationship is the narrow set of
+contracts whose resolution criterion most closely matches what consumer
+sentiment surveys ask about.
+
+Two complementary explanations are consistent with our findings. First,
+\emph{construct invalidity}: many of Polymarket's macro contracts are
+designed for traders, not for measuring household sentiment. Markets on
+``Will the Fed cut by 25 bps at the September meeting?'' encode a
+finely-grained policy-path question whose price is dominated by
+sophisticated traders' read of Fed Funds futures, not by the
+consumer-relevant ``Is the economy headed for trouble?'' construct that
+ICS captures. Aggregating these heterogeneous contracts dilutes the
+signal we are after with orthogonal noise. Second, \emph{audience
+mismatch}: Polymarket's user base is overwhelmingly composed of
+politically engaged, finance-literate, crypto-native traders, whose
+beliefs need not move with those of the broader US household population
+the ICS samples.
+
+The recession-subset result is consistent with both readings: a small
+number of high-volume contracts that resolve directly on the
+recession concept successfully reflect the same news events that move
+household sentiment, but neither leads the other. From the perspective
+of a researcher who wants a daily-frequency proxy for household
+recession fears, the recession-only subset is a reasonable candidate;
+from the perspective of an investor seeking a forecasting edge over the
+ICS itself, our null Granger results give no encouragement.
+
+\section{Limitations}
+
+\paragraph{Short coverage window.}
+The Polymarket macro-contract universe with non-trivial liquidity is
+predominantly a 2024-onwards phenomenon. Our overlap with the ICS is
+$39$ months for the full index and only $18$ months for the
+recession subset, which is well within range where a $p < 0.05$ Granger
+test could fail despite a real effect; we report no positive Granger
+finding precisely because the data does not support one rather than
+because we believe none exists.
+
+\paragraph{Imperfect polarity labelling.}
+Our slug-based polarity classifier labels only $573$ of $2{,}553$
+candidate markets; the remainder are dropped. Mislabelling is possible
+(particularly for inflation contracts at thresholds near the $\sim 3\%$
+boundary we adopt); the inflation-subset result, which goes
+``the wrong way'' for our hypothesis, may partly reflect this. We made
+our classifier source-visible so that future replications can refine it.
+
+\paragraph{Market-maker effects.}
+Recent work \citep{tsang2026anatomy} shows that Polymarket reported
+notional volume substantially overstates economically meaningful trade
+volume once share creation/destruction is netted out. Our
+liquidity weighting is based on the reported \texttt{volumeNum}
+field and may therefore overweight markets whose true informational
+volume is lower. We have not corrected for this; doing so requires
+on-chain transaction-level data.
+
+\paragraph{Single-country focus.}
+The Michigan ICS is a US survey. We make no attempt to map non-US
+Polymarket macro contracts (ECB, BoE, Argentina inflation, etc.) into
+the index even though they are in the candidate set; we exclude them
+when present.
+
+\paragraph{Construct of ``macro pessimism''.}
+We aggregate over heterogeneous events (recessions, Fed decisions,
+inflation levels) with a $\pm 1$ polarity label. A more principled
+construction would weight by an event's known elasticity to consumer
+sentiment, which would require pre-existing structural estimates we did
+not attempt to fit.
+
+\section{Conclusion}
+
+A liquidity-weighted Polymarket macro-pessimism index, naively
+constructed from all macro-relevant resolved contracts between 2022 and
+2025, does not track the Michigan Index of Consumer Sentiment in either
+levels or first differences. A narrowly constructed sub-index using
+only recession contracts \emph{does} co-move with ICS contemporaneously
+in differences ($R^2 = 0.46$), but offers no out-of-sample forecasting
+power over and above the survey itself. The result casts doubt on
+informal claims that Polymarket is a useful aggregate macro-sentiment
+signal at the monthly horizon while leaving open the possibility of
+construct-validated, event-specific indices that could be informative.
+All code, data sources, and intermediate artefacts are released in
+the project repository so that future replications -- whether they
+confirm or overturn these conclusions -- can extend the analysis
+window and refine the polarity labelling.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

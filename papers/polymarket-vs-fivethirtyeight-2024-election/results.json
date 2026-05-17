@@ -1,0 +1,430 @@
+{
+  "n_states": 14,
+  "election_day": "2024-11-05",
+  "per_state": [
+    {
+      "state": "Arizona",
+      "n_overlap_days": 97,
+      "first_overlap": "2024-08-01",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.913771797225057,
+      "pearson_p": 6.072152331122541e-39,
+      "final_market_price": 0.75,
+      "final_poll_margin_pp": 2.1770500000000084,
+      "final_poll_winprob": 0.7651617581848584,
+      "actual_trump_won": 1,
+      "market_brier": 0.0625,
+      "poll_brier": 0.055148999818826906,
+      "mean_abs_diff_winprob": 0.050673527394895654
+    },
+    {
+      "state": "Florida",
+      "n_overlap_days": 85,
+      "first_overlap": "2024-08-13",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.9296519606362152,
+      "pearson_p": 9.556731632074135e-38,
+      "final_market_price": 0.925,
+      "final_poll_margin_pp": 6.567300000000003,
+      "final_poll_winprob": 0.9854091105328021,
+      "actual_trump_won": 1,
+      "market_brier": 0.005624999999999994,
+      "poll_brier": 0.00021289405544398625,
+      "mean_abs_diff_winprob": 0.04165430344684146
+    },
+    {
+      "state": "Georgia",
+      "n_overlap_days": 99,
+      "first_overlap": "2024-07-30",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.70781784824086,
+      "pearson_p": 2.5755228301557986e-16,
+      "final_market_price": 0.635,
+      "final_poll_margin_pp": 0.7085000000000008,
+      "final_poll_winprob": 0.593010190944455,
+      "actual_trump_won": 1,
+      "market_brier": 0.13322499999999998,
+      "poll_brier": 0.16564070467506903,
+      "mean_abs_diff_winprob": 0.04160122288823415
+    },
+    {
+      "state": "Michigan",
+      "n_overlap_days": 103,
+      "first_overlap": "2024-07-26",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.7864964191535395,
+      "pearson_p": 7.269659054439399e-23,
+      "final_market_price": 0.405,
+      "final_poll_margin_pp": -1.0355500000000006,
+      "final_poll_winprob": 0.3654571382204712,
+      "actual_trump_won": 1,
+      "market_brier": 0.354025,
+      "poll_brier": 0.40264464343535417,
+      "mean_abs_diff_winprob": 0.1120994776432478
+    },
+    {
+      "state": "Minnesota",
+      "n_overlap_days": 79,
+      "first_overlap": "2024-08-19",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.41007113602800893,
+      "pearson_p": 0.00017460450203208411,
+      "final_market_price": 0.09,
+      "final_poll_margin_pp": -5.3851999999999975,
+      "final_poll_winprob": 0.036852297804891986,
+      "actual_trump_won": 0,
+      "market_brier": 0.0081,
+      "poll_brier": 0.0013580918535004466,
+      "mean_abs_diff_winprob": 0.0542252680612649
+    },
+    {
+      "state": "National",
+      "n_overlap_days": 105,
+      "first_overlap": "2024-07-24",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.6178857552970848,
+      "pearson_p": 2.192112510082779e-12,
+      "final_market_price": 0.5635,
+      "final_poll_margin_pp": -1.2463499999999996,
+      "final_poll_winprob": 0.3394674561469263,
+      "actual_trump_won": 1,
+      "market_brier": 0.19053225,
+      "poll_brier": 0.4363032414890127,
+      "mean_abs_diff_winprob": 0.2671526281809111
+    },
+    {
+      "state": "Nevada",
+      "n_overlap_days": 88,
+      "first_overlap": "2024-08-10",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.5636385623028257,
+      "pearson_p": 1.0805702985167868e-08,
+      "final_market_price": 0.585,
+      "final_poll_margin_pp": 0.2926000000000073,
+      "final_poll_winprob": 0.5387056667103912,
+      "actual_trump_won": 1,
+      "market_brier": 0.17222500000000002,
+      "poll_brier": 0.21279246192510468,
+      "mean_abs_diff_winprob": 0.07302796882119415
+    },
+    {
+      "state": "New Hampshire",
+      "n_overlap_days": 77,
+      "first_overlap": "2024-08-21",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.5274562770128884,
+      "pearson_p": 8.271554725659836e-07,
+      "final_market_price": 0.155,
+      "final_poll_margin_pp": -4.948650000000001,
+      "final_poll_winprob": 0.05014357701249198,
+      "actual_trump_won": 0,
+      "market_brier": 0.024025,
+      "poll_brier": 0.0025143783156077143,
+      "mean_abs_diff_winprob": 0.12259364078071185
+    },
+    {
+      "state": "North Carolina",
+      "n_overlap_days": 86,
+      "first_overlap": "2024-08-12",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.711132364471183,
+      "pearson_p": 1.6943997312933578e-14,
+      "final_market_price": 0.625,
+      "final_poll_margin_pp": 0.882399999999997,
+      "final_poll_winprob": 0.6152572573929506,
+      "actual_trump_won": 1,
+      "market_brier": 0.140625,
+      "poll_brier": 0.1480269779887943,
+      "mean_abs_diff_winprob": 0.045728069189420247
+    },
+    {
+      "state": "Ohio",
+      "n_overlap_days": 58,
+      "first_overlap": "2024-09-09",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.02678736862450685,
+      "pearson_p": 0.841792396906757,
+      "final_market_price": 0.9,
+      "final_poll_margin_pp": 8.2594,
+      "final_poll_winprob": 0.9969557262686204,
+      "actual_trump_won": 1,
+      "market_brier": 0.009999999999999995,
+      "poll_brier": 9.267602551567933e-06,
+      "mean_abs_diff_winprob": 0.07167773379720134
+    },
+    {
+      "state": "Pennsylvania",
+      "n_overlap_days": 99,
+      "first_overlap": "2024-07-30",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.6754367614232824,
+      "pearson_p": 1.7417838861001633e-14,
+      "final_market_price": 0.555,
+      "final_poll_margin_pp": -0.15944999999999965,
+      "final_poll_winprob": 0.47888432945006637,
+      "actual_trump_won": 1,
+      "market_brier": 0.19802499999999995,
+      "poll_brier": 0.2715615420927069,
+      "mean_abs_diff_winprob": 0.1004028597022864
+    },
+    {
+      "state": "Texas",
+      "n_overlap_days": 67,
+      "first_overlap": "2024-08-31",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.7438087193439481,
+      "pearson_p": 5.550289373043073e-13,
+      "final_market_price": 0.92,
+      "final_poll_margin_pp": 7.605550000000001,
+      "final_poll_winprob": 0.9942287079328822,
+      "actual_trump_won": 1,
+      "market_brier": 0.006399999999999993,
+      "poll_brier": 3.330781212397679e-05,
+      "mean_abs_diff_winprob": 0.07396945968392397
+    },
+    {
+      "state": "Virginia",
+      "n_overlap_days": 56,
+      "first_overlap": "2024-09-11",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.09796690415254622,
+      "pearson_p": 0.4725644297853241,
+      "final_market_price": 0.12,
+      "final_poll_margin_pp": -6.61515,
+      "final_poll_winprob": 0.014013319965257771,
+      "actual_trump_won": 0,
+      "market_brier": 0.0144,
+      "poll_brier": 0.00019637313644869207,
+      "mean_abs_diff_winprob": 0.113875536104725
+    },
+    {
+      "state": "Wisconsin",
+      "n_overlap_days": 97,
+      "first_overlap": "2024-08-01",
+      "last_overlap": "2024-11-05",
+      "pearson_r": 0.8406994936392949,
+      "pearson_p": 4.758372506876334e-27,
+      "final_market_price": 0.415,
+      "final_poll_margin_pp": -1.0429999999999993,
+      "final_poll_winprob": 0.3645271626774824,
+      "actual_trump_won": 1,
+      "market_brier": 0.34222499999999995,
+      "poll_brier": 0.4038257269747309,
+      "mean_abs_diff_winprob": 0.15566857539786916
+    }
+  ],
+  "panel_market_brier": 0.11870944642857141,
+  "panel_poll_brier": 0.15001918651251972,
+  "volume_weighted_market_brier": 0.12336004653610226,
+  "volume_weighted_poll_brier": 0.16122456543775576,
+  "sign_test": {
+    "market_closer": 7,
+    "poll_closer": 7,
+    "ties": 0,
+    "p_value": 1.0
+  },
+  "wilcoxon_signed_rank": {
+    "statistic": 31.0,
+    "p_value": 0.1937255859375
+  },
+  "lead_lag_pooled": {
+    "-14": {
+      "mean": 0.026027756011315885,
+      "n_states": 13
+    },
+    "-13": {
+      "mean": 0.014277195184257553,
+      "n_states": 13
+    },
+    "-12": {
+      "mean": -0.05181103941509328,
+      "n_states": 13
+    },
+    "-11": {
+      "mean": -0.011720406634477024,
+      "n_states": 13
+    },
+    "-10": {
+      "mean": 0.03712908414192444,
+      "n_states": 13
+    },
+    "-9": {
+      "mean": 0.03170614472000073,
+      "n_states": 13
+    },
+    "-8": {
+      "mean": 0.040877101790608585,
+      "n_states": 13
+    },
+    "-7": {
+      "mean": 0.009545091030782464,
+      "n_states": 13
+    },
+    "-6": {
+      "mean": -0.003132983231964669,
+      "n_states": 13
+    },
+    "-5": {
+      "mean": 0.0759411235050529,
+      "n_states": 13
+    },
+    "-4": {
+      "mean": 0.01782699811878058,
+      "n_states": 13
+    },
+    "-3": {
+      "mean": -0.00017822915041755457,
+      "n_states": 13
+    },
+    "-2": {
+      "mean": 0.08853612344835844,
+      "n_states": 13
+    },
+    "-1": {
+      "mean": 0.059752396469912664,
+      "n_states": 13
+    },
+    "0": {
+      "mean": -0.04074370220043573,
+      "n_states": 13
+    },
+    "1": {
+      "mean": 0.12945174068128057,
+      "n_states": 13
+    },
+    "2": {
+      "mean": 0.09078649127709963,
+      "n_states": 13
+    },
+    "3": {
+      "mean": -0.018087914288747085,
+      "n_states": 13
+    },
+    "4": {
+      "mean": 0.07032119835981405,
+      "n_states": 13
+    },
+    "5": {
+      "mean": 0.13258900451860475,
+      "n_states": 13
+    },
+    "6": {
+      "mean": 0.005114723283534643,
+      "n_states": 13
+    },
+    "7": {
+      "mean": 0.009153548351015414,
+      "n_states": 13
+    },
+    "8": {
+      "mean": -0.00290469103213285,
+      "n_states": 13
+    },
+    "9": {
+      "mean": -0.0698019255312962,
+      "n_states": 13
+    },
+    "10": {
+      "mean": -0.02694223250877232,
+      "n_states": 13
+    },
+    "11": {
+      "mean": 0.024691338364694945,
+      "n_states": 13
+    },
+    "12": {
+      "mean": -0.002832359306473018,
+      "n_states": 13
+    },
+    "13": {
+      "mean": -0.029862779287936108,
+      "n_states": 13
+    },
+    "14": {
+      "mean": -0.037524746049763635,
+      "n_states": 13
+    }
+  },
+  "best_lag_days": 5,
+  "best_lag_mean_r": 0.13258900451860475,
+  "calibration_market": [
+    {
+      "lo": 0.0,
+      "hi": 0.2,
+      "n": 3,
+      "mean_pred": 0.12166666666666666,
+      "frac_won": 0.0
+    },
+    {
+      "lo": 0.4,
+      "hi": 0.6000000000000001,
+      "n": 5,
+      "mean_pred": 0.5047,
+      "frac_won": 1.0
+    },
+    {
+      "lo": 0.6000000000000001,
+      "hi": 0.8,
+      "n": 3,
+      "mean_pred": 0.6699999999999999,
+      "frac_won": 1.0
+    },
+    {
+      "lo": 0.8,
+      "hi": 1.0,
+      "n": 3,
+      "mean_pred": 0.915,
+      "frac_won": 1.0
+    }
+  ],
+  "calibration_poll": [
+    {
+      "lo": 0.0,
+      "hi": 0.2,
+      "n": 3,
+      "mean_pred": 0.033669731594213916,
+      "frac_won": 0.0
+    },
+    {
+      "lo": 0.2,
+      "hi": 0.4,
+      "n": 3,
+      "mean_pred": 0.35648391901496,
+      "frac_won": 1.0
+    },
+    {
+      "lo": 0.4,
+      "hi": 0.6000000000000001,
+      "n": 3,
+      "mean_pred": 0.5368667290349708,
+      "frac_won": 1.0
+    },
+    {
+      "lo": 0.6000000000000001,
+      "hi": 0.8,
+      "n": 2,
+      "mean_pred": 0.6902095077889046,
+      "frac_won": 1.0
+    },
+    {
+      "lo": 0.8,
+      "hi": 1.0,
+      "n": 3,
+      "mean_pred": 0.9921978482447682,
+      "frac_won": 1.0
+    }
+  ],
+  "national": {
+    "mean_signed_gap_market_minus_polls": 0.2671526281809111,
+    "max_abs_gap": 0.3638743216878659,
+    "first_overlap": "2024-07-24",
+    "last_overlap": "2024-11-05",
+    "n_overlap_days": 105
+  },
+  "data_provenance": {
+    "fte_url": "https://web.archive.org/web/20241105000000if_/https://projects.fivethirtyeight.com/polls/data/presidential_general_averages.csv",
+    "polymarket_gamma": "https://gamma-api.polymarket.com/events",
+    "polymarket_clob": "https://clob.polymarket.com/prices-history",
+    "fetched_at": "2026-05-17T02:40:18.498272+00:00"
+  }
+}

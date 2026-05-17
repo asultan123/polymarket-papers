@@ -1,0 +1,655 @@
+{
+  "n_polymarket_markets": 1242,
+  "n_manifold_markets": 8000,
+  "n_polymarket_with_7d_price": 1011,
+  "polymarket_volume_total_usd": 16063943980.024961,
+  "polymarket_yes_rate": 0.2648953301127214,
+  "manifold_yes_rate": 0.437875,
+  "polymarket_calibration": {
+    "p_1d": {
+      "n": 1175,
+      "brier": 0.08176641638297871,
+      "brier_ci_lo": 0.07183985613297872,
+      "brier_ci_hi": 0.09190668379255316,
+      "reliability": 0.0034350037784636584,
+      "resolution": 0.11437810450436747,
+      "uncertainty": 0.19341674966047984,
+      "log_loss": 0.2491604538778301,
+      "base_rate": 0.2621276595744681,
+      "mean_pred": 0.24457574468085108
+    },
+    "p_7d": {
+      "n": 1011,
+      "brier": 0.08929396711177054,
+      "brier_ci_lo": 0.07752917810954502,
+      "brier_ci_hi": 0.1010552462166172,
+      "reliability": 0.003262100430083,
+      "resolution": 0.09365682277677903,
+      "uncertainty": 0.18051483141428462,
+      "log_loss": 0.2752414616881272,
+      "base_rate": 0.23639960435212662,
+      "mean_pred": 0.20707467853610287
+    },
+    "p_30d": {
+      "n": 624,
+      "brier": 0.06138129967948718,
+      "brier_ci_lo": 0.04909181541466347,
+      "brier_ci_hi": 0.07386373120993589,
+      "reliability": 0.00427364450056497,
+      "resolution": 0.07978150332753745,
+      "uncertainty": 0.13781794460881,
+      "log_loss": 0.19823889139169779,
+      "base_rate": 0.16506410256410256,
+      "mean_pred": 0.16070352564102564
+    }
+  },
+  "polymarket_calibration_bins": {
+    "p_1d": [
+      {
+        "p_lo": 0.0,
+        "p_hi": 0.05,
+        "mean_pred": 0.0072341977309562395,
+        "mean_actual": 0.004862236628849271,
+        "n": 617
+      },
+      {
+        "p_lo": 0.05,
+        "p_hi": 0.15,
+        "mean_pred": 0.09021649484536083,
+        "mean_actual": 0.15463917525773196,
+        "n": 97
+      },
+      {
+        "p_lo": 0.15,
+        "p_hi": 0.25,
+        "mean_pred": 0.19023880597014922,
+        "mean_actual": 0.23880597014925373,
+        "n": 67
+      },
+      {
+        "p_lo": 0.25,
+        "p_hi": 0.35,
+        "mean_pred": 0.29334090909090915,
+        "mean_actual": 0.3181818181818182,
+        "n": 44
+      },
+      {
+        "p_lo": 0.35,
+        "p_hi": 0.45,
+        "mean_pred": 0.4036666666666666,
+        "mean_actual": 0.5625,
+        "n": 48
+      },
+      {
+        "p_lo": 0.45,
+        "p_hi": 0.55,
+        "mean_pred": 0.49089285714285713,
+        "mean_actual": 0.5238095238095238,
+        "n": 42
+      },
+      {
+        "p_lo": 0.55,
+        "p_hi": 0.65,
+        "mean_pred": 0.5926475409836065,
+        "mean_actual": 0.6229508196721312,
+        "n": 61
+      },
+      {
+        "p_lo": 0.65,
+        "p_hi": 0.75,
+        "mean_pred": 0.7011022727272728,
+        "mean_actual": 0.75,
+        "n": 44
+      },
+      {
+        "p_lo": 0.75,
+        "p_hi": 0.85,
+        "mean_pred": 0.7930833333333335,
+        "mean_actual": 0.7619047619047619,
+        "n": 42
+      },
+      {
+        "p_lo": 0.85,
+        "p_hi": 0.95,
+        "mean_pred": 0.9044756097560975,
+        "mean_actual": 0.8780487804878049,
+        "n": 41
+      },
+      {
+        "p_lo": 0.95,
+        "p_hi": 1.0,
+        "mean_pred": 0.9878125,
+        "mean_actual": 1.0,
+        "n": 72
+      }
+    ],
+    "p_7d": [
+      {
+        "p_lo": 0.0,
+        "p_hi": 0.05,
+        "mean_pred": 0.008289575289575291,
+        "mean_actual": 0.007722007722007722,
+        "n": 518
+      },
+      {
+        "p_lo": 0.05,
+        "p_hi": 0.15,
+        "mean_pred": 0.08793150684931507,
+        "mean_actual": 0.15753424657534246,
+        "n": 146
+      },
+      {
+        "p_lo": 0.15,
+        "p_hi": 0.25,
+        "mean_pred": 0.19769811320754713,
+        "mean_actual": 0.2830188679245283,
+        "n": 53
+      },
+      {
+        "p_lo": 0.25,
+        "p_hi": 0.35,
+        "mean_pred": 0.2998875,
+        "mean_actual": 0.375,
+        "n": 40
+      },
+      {
+        "p_lo": 0.35,
+        "p_hi": 0.45,
+        "mean_pred": 0.40842105263157896,
+        "mean_actual": 0.5789473684210527,
+        "n": 38
+      },
+      {
+        "p_lo": 0.45,
+        "p_hi": 0.55,
+        "mean_pred": 0.4940888888888889,
+        "mean_actual": 0.5111111111111111,
+        "n": 45
+      },
+      {
+        "p_lo": 0.55,
+        "p_hi": 0.65,
+        "mean_pred": 0.5897555555555556,
+        "mean_actual": 0.6222222222222222,
+        "n": 45
+      },
+      {
+        "p_lo": 0.65,
+        "p_hi": 0.75,
+        "mean_pred": 0.707554054054054,
+        "mean_actual": 0.7567567567567568,
+        "n": 37
+      },
+      {
+        "p_lo": 0.75,
+        "p_hi": 0.85,
+        "mean_pred": 0.789578125,
+        "mean_actual": 0.84375,
+        "n": 32
+      },
+      {
+        "p_lo": 0.85,
+        "p_hi": 0.95,
+        "mean_pred": 0.9061538461538461,
+        "mean_actual": 0.8846153846153846,
+        "n": 26
+      },
+      {
+        "p_lo": 0.95,
+        "p_hi": 1.0,
+        "mean_pred": 0.9821935483870969,
+        "mean_actual": 1.0,
+        "n": 31
+      }
+    ],
+    "p_30d": [
+      {
+        "p_lo": 0.0,
+        "p_hi": 0.05,
+        "mean_pred": 0.009420980926430516,
+        "mean_actual": 0.0027247956403269754,
+        "n": 367
+      },
+      {
+        "p_lo": 0.05,
+        "p_hi": 0.15,
+        "mean_pred": 0.08974157303370786,
+        "mean_actual": 0.11235955056179775,
+        "n": 89
+      },
+      {
+        "p_lo": 0.15,
+        "p_hi": 0.25,
+        "mean_pred": 0.19377272727272726,
+        "mean_actual": 0.18181818181818182,
+        "n": 33
+      },
+      {
+        "p_lo": 0.25,
+        "p_hi": 0.35,
+        "mean_pred": 0.29426785714285714,
+        "mean_actual": 0.39285714285714285,
+        "n": 28
+      },
+      {
+        "p_lo": 0.35,
+        "p_hi": 0.45,
+        "mean_pred": 0.3986388888888889,
+        "mean_actual": 0.3333333333333333,
+        "n": 18
+      },
+      {
+        "p_lo": 0.45,
+        "p_hi": 0.55,
+        "mean_pred": 0.50505,
+        "mean_actual": 0.4,
+        "n": 20
+      },
+      {
+        "p_lo": 0.55,
+        "p_hi": 0.65,
+        "mean_pred": 0.5999444444444444,
+        "mean_actual": 0.8888888888888888,
+        "n": 9
+      },
+      {
+        "p_lo": 0.65,
+        "p_hi": 0.75,
+        "mean_pred": 0.6986250000000002,
+        "mean_actual": 0.8333333333333334,
+        "n": 12
+      },
+      {
+        "p_lo": 0.75,
+        "p_hi": 0.85,
+        "mean_pred": 0.7897777777777778,
+        "mean_actual": 0.7777777777777778,
+        "n": 9
+      },
+      {
+        "p_lo": 0.85,
+        "p_hi": 0.95,
+        "mean_pred": 0.8950599999999999,
+        "mean_actual": 0.88,
+        "n": 25
+      },
+      {
+        "p_lo": 0.95,
+        "p_hi": 1.0,
+        "mean_pred": 0.9754642857142858,
+        "mean_actual": 1.0,
+        "n": 14
+      }
+    ]
+  },
+  "polymarket_by_topic": {
+    "Crypto": {
+      "n": 106,
+      "brier": 0.11605689858490567,
+      "brier_ci_lo": 0.07238387382075472,
+      "brier_ci_hi": 0.1634294383254717,
+      "reliability": 0.059365757871803745,
+      "resolution": 0.11328926190086742,
+      "base_rate": 0.2169811320754717,
+      "mean_pred": 0.1297688679245283,
+      "volume_mean": 3259588.900563858,
+      "volume_median": 1561665.4785455
+    },
+    "Finance/Macro": {
+      "n": 45,
+      "brier": 0.0411213,
+      "brier_ci_lo": 0.007325415972222223,
+      "brier_ci_hi": 0.08615047791666657,
+      "reliability": 0.04098496682098766,
+      "resolution": 0.13135802469135804,
+      "base_rate": 0.15555555555555556,
+      "mean_pred": 0.1521111111111111,
+      "volume_mean": 49806716.94558726,
+      "volume_median": 11155452.805379
+    },
+    "Geopolitics/War": {
+      "n": 80,
+      "brier": 0.127623615625,
+      "brier_ci_lo": 0.07588384289062498,
+      "brier_ci_hi": 0.1854340970312499,
+      "reliability": 0.027148072612179486,
+      "resolution": 0.08467948717948719,
+      "base_rate": 0.25,
+      "mean_pred": 0.15240625,
+      "volume_mean": 19021268.75818558,
+      "volume_median": 1861599.0258835
+    },
+    "Other": {
+      "n": 346,
+      "brier": 0.12357129768786126,
+      "brier_ci_lo": 0.10424029512283237,
+      "brier_ci_hi": 0.1447847991148844,
+      "reliability": 0.005031309791201934,
+      "resolution": 0.10359450076210514,
+      "base_rate": 0.3352601156069364,
+      "mean_pred": 0.31944797687861276,
+      "volume_mean": 4820111.152141766,
+      "volume_median": 1648538.584907
+    },
+    "Politics": {
+      "n": 204,
+      "brier": 0.06570374019607844,
+      "brier_ci_lo": 0.047389785723039216,
+      "brier_ci_hi": 0.08626556109068628,
+      "reliability": 0.009903553393182525,
+      "resolution": 0.12198342712010533,
+      "base_rate": 0.23039215686274508,
+      "mean_pred": 0.20637745098039215,
+      "volume_mean": 31917990.34146637,
+      "volume_median": 3636902.4196245
+    },
+    "Sports": {
+      "n": 117,
+      "brier": 0.01626159829059829,
+      "brier_ci_lo": 0.006236691559829058,
+      "brier_ci_hi": 0.028361762927350424,
+      "reliability": 0.010332084016512588,
+      "resolution": 0.06530791146175763,
+      "base_rate": 0.07692307692307693,
+      "mean_pred": 0.08768376068376069,
+      "volume_mean": 29028643.58616751,
+      "volume_median": 3576557.716003998
+    },
+    "Tech/AI": {
+      "n": 99,
+      "brier": 0.07413619444444446,
+      "brier_ci_lo": 0.03261816679292929,
+      "brier_ci_hi": 0.12090527582070702,
+      "reliability": 0.007804802464225588,
+      "resolution": 0.03981098867462504,
+      "base_rate": 0.12121212121212122,
+      "mean_pred": 0.09188383838383839,
+      "volume_mean": 3045442.6344268583,
+      "volume_median": 1246474.150643
+    }
+  },
+  "polymarket_by_volume": {
+    "low": {
+      "n": 334,
+      "brier": 0.08606375449101797,
+      "brier_ci_lo": 0.06855403590943114,
+      "brier_ci_hi": 0.10484962634730534,
+      "volume_thresh_lo": 776455.466077,
+      "volume_thresh_hi": 1352704.656205
+    },
+    "mid": {
+      "n": 343,
+      "brier": 0.0911013921282799,
+      "brier_ci_lo": 0.07111552430758018,
+      "brier_ci_hi": 0.11188503593294455,
+      "volume_thresh_lo": 1352813.148228,
+      "volume_thresh_hi": 3581540.719737
+    },
+    "high": {
+      "n": 334,
+      "brier": 0.09066805164670659,
+      "brier_ci_lo": 0.07047796268712576,
+      "brier_ci_hi": 0.11322360016841317,
+      "volume_thresh_lo": 3582698.324897,
+      "volume_thresh_hi": 1531479284.504353
+    }
+  },
+  "polymarket_volume_quantiles": {
+    "q33": 1352737.2038119,
+    "q67": 3582351.043349
+  },
+  "manifold_calibration_final_prob": {
+    "n": 8000,
+    "brier": 0.0792188828012711,
+    "brier_ci_lo": 0.07602986918022366,
+    "brier_ci_hi": 0.08259363805068867,
+    "reliability": 0.0012572665091055391,
+    "resolution": 0.1678843237738354,
+    "log_loss": 0.2522895064425935,
+    "base_rate": 0.437875,
+    "mean_pred": 0.4496077986868926
+  },
+  "manifold_calibration_bins": [
+    {
+      "p_lo": 0.0,
+      "p_hi": 0.05,
+      "mean_pred": 0.016541922009237486,
+      "mean_actual": 0.007462686567164179,
+      "n": 2278
+    },
+    {
+      "p_lo": 0.05,
+      "p_hi": 0.15,
+      "mean_pred": 0.08995727237373943,
+      "mean_actual": 0.028241335044929396,
+      "n": 779
+    },
+    {
+      "p_lo": 0.15,
+      "p_hi": 0.25,
+      "mean_pred": 0.1957703517508568,
+      "mean_actual": 0.10764872521246459,
+      "n": 353
+    },
+    {
+      "p_lo": 0.25,
+      "p_hi": 0.35,
+      "mean_pred": 0.30153356986005314,
+      "mean_actual": 0.22580645161290322,
+      "n": 279
+    },
+    {
+      "p_lo": 0.35,
+      "p_hi": 0.45,
+      "mean_pred": 0.4051947629860966,
+      "mean_actual": 0.35501355013550134,
+      "n": 369
+    },
+    {
+      "p_lo": 0.45,
+      "p_hi": 0.55,
+      "mean_pred": 0.5011630260066348,
+      "mean_actual": 0.5225118483412322,
+      "n": 844
+    },
+    {
+      "p_lo": 0.55,
+      "p_hi": 0.65,
+      "mean_pred": 0.5993586981681167,
+      "mean_actual": 0.5387096774193548,
+      "n": 310
+    },
+    {
+      "p_lo": 0.65,
+      "p_hi": 0.75,
+      "mean_pred": 0.7027083894320798,
+      "mean_actual": 0.7455197132616488,
+      "n": 279
+    },
+    {
+      "p_lo": 0.75,
+      "p_hi": 0.85,
+      "mean_pred": 0.8023371777188594,
+      "mean_actual": 0.8506493506493507,
+      "n": 308
+    },
+    {
+      "p_lo": 0.85,
+      "p_hi": 0.95,
+      "mean_pred": 0.9078295477961728,
+      "mean_actual": 0.9099099099099099,
+      "n": 444
+    },
+    {
+      "p_lo": 0.95,
+      "p_hi": 1.0,
+      "mean_pred": 0.9853824173511111,
+      "mean_actual": 0.9960159362549801,
+      "n": 1757
+    }
+  ],
+  "n_cross_platform_matches": 62,
+  "cross_platform_mean_abs_diff": 0.32089947265434265,
+  "cross_platform_mean_signed_diff": -0.20399686920334345,
+  "cross_platform_pairwise_brier_pm": 0.11673507258064517,
+  "cross_platform_pairwise_brier_mf": 0.24315093092371626,
+  "cross_platform_examples": [
+    {
+      "pm_q": "Will Zohran Mamdani win the 2025 NYC mayoral election?",
+      "mf_q": "Zohran Mamdani wins 50%+ in NYC mayoral election?",
+      "pm_p_7d": 0.9215,
+      "mf_prob": 0.9907360106285312,
+      "outcome_yes": 1,
+      "jaccard": 0.625
+    },
+    {
+      "pm_q": "Khamenei out as Supreme Leader of Iran by February 28?",
+      "mf_q": "Khamenei out as Supreme Leader of Iran by March 31?",
+      "pm_p_7d": 0.0525,
+      "mf_prob": 0.997244434998974,
+      "outcome_yes": 1,
+      "jaccard": 0.667
+    },
+    {
+      "pm_q": "US strikes Iran by February 28, 2026?",
+      "mf_q": "US strikes Iran by June 30, 2026",
+      "pm_p_7d": 0.465,
+      "mf_prob": 0.9941293971544136,
+      "outcome_yes": 1,
+      "jaccard": 0.6
+    },
+    {
+      "pm_q": "Will Eleven die in \"Stranger Things: Season 5\"?",
+      "mf_q": "Will Steve Harrington die in Stranger Things Season 5?",
+      "pm_p_7d": 0.54,
+      "mf_prob": 0.5977086902393175,
+      "outcome_yes": 0,
+      "jaccard": 0.571
+    },
+    {
+      "pm_q": "Russia x Ukraine ceasefire in 2025?",
+      "mf_q": "Russia x Ukraine ceasefire in 2025?",
+      "pm_p_7d": 0.01,
+      "mf_prob": 0.01,
+      "outcome_yes": 0,
+      "jaccard": 1.0
+    },
+    {
+      "pm_q": "Will the Indiana Pacers win the 2025 NBA Finals?",
+      "mf_q": "Pacers win Game 6 of NBA finals?",
+      "pm_p_7d": 0.197,
+      "mf_prob": 0.99639803151174,
+      "outcome_yes": 0,
+      "jaccard": 0.571
+    },
+    {
+      "pm_q": "Will the Charlotte Hornets win the Eastern Conference?",
+      "mf_q": "Will the Charlotte Hornets finish in the top 7 in the Eastern Conference?",
+      "pm_p_7d": 0.0015,
+      "mf_prob": 0.1621189888982943,
+      "outcome_yes": 0,
+      "jaccard": 0.571
+    },
+    {
+      "pm_q": "No change in Fed interest rates after September 2025 meeting?",
+      "mf_q": "ECB cuts interest rates at September 11, 2025 meeting",
+      "pm_p_7d": 0.0395,
+      "mf_prob": 0.06,
+      "outcome_yes": 0,
+      "jaccard": 0.556
+    },
+    {
+      "pm_q": "Khamenei out as Supreme Leader of Iran by March 31?",
+      "mf_q": "Khamenei out as Supreme Leader of Iran in 2026?",
+      "pm_p_7d": 0.205,
+      "mf_prob": 0.99,
+      "outcome_yes": 1,
+      "jaccard": 0.667
+    },
+    {
+      "pm_q": "Will the Iranian regime fall by March 31?",
+      "mf_q": "Will the Iranian regime fall by January 31?",
+      "pm_p_7d": 0.0185,
+      "mf_prob": 0.01,
+      "outcome_yes": 0,
+      "jaccard": 0.6
+    }
+  ],
+  "polymarket_topic_counts": {
+    "Other": 408,
+    "Politics": 226,
+    "Crypto": 205,
+    "Sports": 120,
+    "Tech/AI": 114,
+    "Geopolitics/War": 107,
+    "Finance/Macro": 46,
+    "Culture/Entertainment": 11,
+    "Weather/Climate": 5
+  },
+  "manifold_topic_counts": {
+    "Other": 5303,
+    "Tech/AI": 616,
+    "Politics": 510,
+    "Crypto": 448,
+    "Geopolitics/War": 412,
+    "Sports": 372,
+    "Finance/Macro": 138,
+    "Culture/Entertainment": 132,
+    "Weather/Climate": 69
+  },
+  "polymarket_topic_volume_usd": {
+    "Crypto": 495268115.1367559,
+    "Culture/Entertainment": 72927698.275396,
+    "Finance/Macro": 2242464199.621407,
+    "Geopolitics/War": 1906836800.1755643,
+    "Other": 1784120856.1227348,
+    "Politics": 6560319281.206337,
+    "Sports": 3399228340.4241905,
+    "Tech/AI": 319855597.25478494,
+    "Weather/Climate": 7808706.9357630005
+  },
+  "polymarket_bias_by_topic": {
+    "Crypto": {
+      "n": 106,
+      "signed_mean_error": -0.08721226415094342,
+      "mean_pred": 0.1297688679245283,
+      "mean_actual": 0.2169811320754717
+    },
+    "Finance/Macro": {
+      "n": 45,
+      "signed_mean_error": -0.003444444444444442,
+      "mean_pred": 0.1521111111111111,
+      "mean_actual": 0.15555555555555556
+    },
+    "Geopolitics/War": {
+      "n": 80,
+      "signed_mean_error": -0.09759375,
+      "mean_pred": 0.15240625,
+      "mean_actual": 0.25
+    },
+    "Other": {
+      "n": 346,
+      "signed_mean_error": -0.015812138728323703,
+      "mean_pred": 0.31944797687861276,
+      "mean_actual": 0.3352601156069364
+    },
+    "Politics": {
+      "n": 204,
+      "signed_mean_error": -0.024014705882352945,
+      "mean_pred": 0.20637745098039215,
+      "mean_actual": 0.23039215686274508
+    },
+    "Sports": {
+      "n": 117,
+      "signed_mean_error": 0.010760683760683757,
+      "mean_pred": 0.08768376068376069,
+      "mean_actual": 0.07692307692307693
+    },
+    "Tech/AI": {
+      "n": 99,
+      "signed_mean_error": -0.029328282828282835,
+      "mean_pred": 0.09188383838383839,
+      "mean_actual": 0.12121212121212122
+    }
+  }
+}

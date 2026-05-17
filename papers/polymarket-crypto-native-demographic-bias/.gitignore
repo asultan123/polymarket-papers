@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+
+# Raw and intermediate datasets (regenerated via fetch_data.py). The
+# committed JSON summary is enough to verify the paper numbers; the raw
+# CSVs are too large to track and are not needed by readers.
+data/polymarket_markets_raw.csv
+data/polymarket_prices.csv
+data/manifold_markets.csv

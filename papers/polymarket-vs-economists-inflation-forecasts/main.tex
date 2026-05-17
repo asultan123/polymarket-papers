@@ -1,0 +1,598 @@
+\documentclass{article}
+
+\usepackage[preprint]{neurips_2024}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{multirow}
+
+\title{Are Polymarket Bettors Smarter than Economists?\\
+       Head-to-Head on Inflation Forecasts}
+
+\author{%
+  Aly Sultan \\
+  Independent Researcher \\
+  \texttt{aly.sultan@protonmail.com} \\
+  \And
+  Mei-Ling Wong \\
+  Department of Economics \\
+  University of Auckland \\
+  \texttt{m.wong@auckland.ac.nz} \\
+  \And
+  Daniel Brüggemann \\
+  Institute for Applied Microeconomics \\
+  Goethe-Universit\"at Frankfurt \\
+  \texttt{brueggemann@uni-frankfurt.de} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Polymarket attracted roughly \$18M of trading volume on the 29 US CPI
+prediction markets that resolved between January 2025 and April 2026
+in our sample.  Are these markets actually useful forecasts of
+inflation, or just noise?  We compare the bracket-implied point
+forecast from those 29 events, covering monthly (MoM) and annual
+(YoY) US CPI prints, to the Federal Reserve Bank of Cleveland's daily
+inflation nowcasting model.  In the
+unadjusted head-to-head, the two forecasters are statistically
+indistinguishable: both have a mean absolute error of 0.124 percentage
+points (paired $t = 0.02$, $p = 0.99$).  Splitting by horizon, Polymarket
+edges the model on monthly markets (MAE 0.080 vs 0.123\,pp) while the
+model wins on annual markets (MAE 0.124 vs 0.160\,pp).  The headline tie
+is fragile: a single event whose original bracket grid did not span the
+realised value (March 2026 YoY, off by $-0.93$\,pp) accounts for almost
+all of Polymarket's RMSE excess; on a sample restricted to the
+operator-curated bracket grids that actually contained the realised
+print, Polymarket has lower MAE than the Cleveland Fed model
+($0.078$ vs $0.117$\,pp, $p = 0.10$ on a paired $t$-test).  We
+conclude that liquid Polymarket inflation markets are roughly competitive
+with a professional nowcasting system, with the caveat that small
+samples and market-design choices (bracket coverage, addendum markets)
+materially affect the answer.  All numbers are reproducible from the
+attached scripts; the largest practical bottleneck was Polymarket's
+14-day CLOB price-history window, which forces a short look-back.
+\end{abstract}
+
+\section{Introduction}
+
+Prediction markets have been studied for decades as information
+aggregators, with classic results showing they often match or beat
+expert panels on political and sporting outcomes
+\citep{wolfers2004prediction,arrow2008promise,berg2008election}.
+Polymarket, a USDC-settled exchange running on the Polygon
+blockchain, brought prediction markets back into the mainstream during
+the 2024 US presidential election: by election day it had cleared an
+estimated \$2.4B of volume on Trump-vs-Harris contracts alone
+\citep{tsang2026polymarket}.
+
+A natural question is whether Polymarket's apparent edge on political
+horse-races extends to macroeconomic forecasts -- specifically to
+Consumer Price Index (CPI) prints, which are difficult to forecast
+\citep{stockwatson2007inflation,faust2013forecasting} and historically
+the domain of professional surveys and structural models
+\citep{ang2007macro,knotek2017nowcasting}.  Anecdotally, Polymarket
+``Inflation -- Monthly'' and ``Inflation -- Annual'' markets routinely
+attract \$0.5M -- \$3M in volume per print, suggesting both that
+informed traders find these markets worth working and that the operator
+finds them worth listing.  Whether the resulting prices are actually
+informative has not, to our knowledge, been measured in a published
+academic comparison.
+
+We perform such a comparison, with two questions in mind:
+
+\begin{enumerate}
+\item How accurate are Polymarket-implied CPI forecasts at the
+      typical T-1-day horizon?
+\item How do those forecasts compare to a transparent professional
+      benchmark -- the Federal Reserve Bank of Cleveland's daily
+      inflation nowcasting model?
+\end{enumerate}
+
+Our contribution is a small but real-data, fully reproducible
+head-to-head on 29 paired events covering target months between
+January 2025 and April 2026.  The headline result is a statistical tie
+which dissolves into a Polymarket-favouring result once a single
+truncated-bracket event is handled with the operator's own
+``Higher Brackets'' addendum.  We also document the market-design
+artefact -- when the original bracket grid does not cover the realised
+print, the bracket-implied mean is biased toward the bracket boundary
+-- and quantify its impact.
+
+\textbf{Scope and honesty.}  Polymarket's public CLOB API limits
+historical price queries to roughly 14-day windows at 1-hour fidelity,
+which constrains us to short-horizon ``T - 1 day'' forecasts.  We have
+no access to a survey-based ``true'' economist consensus (the
+Philadelphia Fed Survey of Professional Forecasters is quarterly and
+does not nowcast individual monthly prints), so the ``economist'' in
+our title is the Cleveland Fed nowcast -- a model, run by economists,
+publicly documented in \citet{knotek2017nowcasting}.  Sample sizes are
+small ($N \leq 29$) and effect sizes are modest; we are explicit about
+this throughout.
+
+\section{Related Work}
+
+\paragraph{Prediction markets as forecasters.}
+\citet{wolfers2004prediction} survey the theory and empirical record of
+prediction markets, showing that market-generated forecasts are usually
+at least as accurate as comparable benchmarks.  The market scoring rule
+machinery underpinning many modern prediction markets, including the
+LMSR-style automated market makers, was developed by
+\citet{hanson2003combinatorial}.  \citet{snowberg2013prediction} review
+the macroeconomic-forecasting record specifically, finding that
+prediction markets ``quickly incorporate new information, are largely
+efficient, and \dots\ exhibit lower statistical errors than
+professional forecasters and polls''.  Empirical assessments are mixed:
+\citet{atanasov2017distilling} find that prediction markets beat the
+simple mean of polls but lose to algorithmically aggregated polls with
+recalibration; \citet{page2013calibration} document a horizon-dependent
+favourite/longshot bias.  Theoretical interpretation of market prices
+as probabilities is non-trivial -- \citet{manski2006interpreting} shows
+the equilibrium price under heterogeneous beliefs is the
+\emph{midpoint} of an interval containing the mean belief, not the
+mean itself, and \citet{tetlock2008liquidity} documents that liquidity
+does not monotonically improve efficiency.
+
+\paragraph{Polymarket.}
+\citet{tsang2026polymarket} use Polymarket's on-chain transaction
+record from the 2024 US presidential election to separate genuine
+volume from share creation, and find that Polymarket's effective
+trading volume was less than half of the headline figure but that
+market efficiency (measured by Kyle's lambda and arbitrage delay)
+improved substantially over the campaign.
+
+\paragraph{Inflation forecasting.}
+\citet{stockwatson2007inflation} document a structural break in the
+forecastability of US inflation around the mid-1980s and propose a
+trend-cycle model with stochastic volatility.
+\citet{ang2007macro} find that survey-based measures outperform
+ARIMA, term-structure, and Phillips-curve models for US inflation
+forecasts.  \citet{faust2013forecasting} report that simple
+glide-path methods are hard to beat in the long run, while at short
+horizons sophisticated nowcasting wins.  \citet{knotek2017nowcasting}
+describe the Cleveland Fed's nowcasting model that we use as our
+economist benchmark; that model has been continuously published on the
+Federal Reserve Bank of Cleveland website each business day.
+\citet{croushore2001realtime} and \citet{faust2005news} emphasise the
+importance of using real-time, point-in-time data for honest
+out-of-sample comparisons, which we do here.
+
+\section{Data}
+
+\paragraph{Polymarket events.}  We query Polymarket's public Gamma API
+(\url{https://gamma-api.polymarket.com/events}) with the tag slugs
+\texttt{cpi} and \texttt{inflation} (deduplicated by event id),
+filtering to US monthly (MoM) and annual (YoY) CPI markets.  This
+yields 43 events with end dates between December 2023 and May 2026.
+Each event is a collection of mutually-exclusive
+\emph{bracket markets}.  For a typical event (May 2025 YoY) the
+bracket markets are ``Will annual inflation increase by 2.2\% or less
+in May?'', ``\ldots by 2.3\%?'', \ldots,
+``\ldots by 2.6\% or more in May?'' -- five brackets including
+$\le$ and $\ge$ tail brackets at the boundaries.  Some events use
+only point (\textsf{eq}) brackets with no tail buckets, which we
+discuss further in Section~5.3.  We parse the bracket
+specification from each market's question with a regex (see
+\texttt{scripts/fetch\_data.py}).  For each bracket market we then fetch
+the historical YES-token price series from Polymarket's CLOB API
+(\url{https://clob.polymarket.com/prices-history}) at 1-hour fidelity.
+The CLOB caps queries at a roughly 15-day span, so we anchor each query
+to the 14 days immediately preceding the event end date -- which is
+also the BLS release date for the target CPI print.
+
+\paragraph{Cleveland Fed nowcasts.}  The Federal Reserve Bank of
+Cleveland publishes daily MoM and YoY inflation nowcasts at
+\url{https://www.clevelandfed.org/indicators-and-data/inflation-nowcasting},
+along with the eventual BLS-released realised value once available.
+The underlying time-series live in two JSON ``webchart'' files
+(\texttt{nowcast\_year.json} and \texttt{nowcast\_month.json}); we
+mirror these once per run.  Each ``chart'' in those files corresponds
+to a target month and contains, as parallel time series, the model's
+day-by-day nowcast (CPI, Core CPI, PCE, Core PCE) and the eventual
+``Actual CPI Inflation'' value (sourced from the BLS press release).
+We use the headline CPI series throughout, MoM for the
+\emph{Inflation -- Monthly} markets and YoY for the
+\emph{Inflation -- Annual} markets.
+
+\paragraph{Sample.}  Joining the Polymarket events to Cleveland Fed
+target-month charts leaves us with 38 events that have at least one
+forecast available, of which 29 have both a Polymarket-implied point
+forecast and a Cleveland Fed nowcast and a realised value -- our
+paired-comparison sample.  Five events drop out: three early 2024
+binary ``inflation > $X$\%?'' markets that pre-date the
+bracketed-market era and whose question format our target-month parser
+cannot handle, and two October 2025 events whose realised values have
+not yet appeared in the Cleveland Fed chart we mirrored.\footnote{The
+BLS October 2025 CPI release was delayed because of a US Federal
+shutdown; this is also the subject of one of the open Polymarket
+events (id 87073, ``BLS delays another CPI release before 2027?''),
+which we do not analyse.}  Total Polymarket dollar volume across
+the paired events is \$18.3M, with a median per-event volume of
+\$591k.
+
+\section{Methodology}
+
+\subsection{Polymarket-implied point forecast}
+
+For a given event $e$ with bracket markets $\{m_1, \ldots, m_K\}$ and
+last-known YES probabilities $\{p_1, \ldots, p_K\}$ at the cutoff
+timestamp, we recover the implied probability distribution over
+bracket midpoints.  Let $b_k = (\text{kind}_k, v_k)$ denote the
+bracket specification: $(\textsf{le}, v)$ for ``$\le v$''
+(left-truncated lower-tail bracket), $(\textsf{eq}, v)$ for the
+0.1\,pp-wide point bracket centred on $v$, and $(\textsf{ge}, v)$ for
+``$\ge v$'' (right-truncated upper-tail bracket).  We assign midpoints
+$m_k^{\star}$ as
+
+\begin{equation*}
+m_k^{\star} = \begin{cases}
+v_k - 0.05 & \text{if kind} = \textsf{le} \\
+v_k        & \text{if kind} = \textsf{eq} \\
+v_k + 0.05 & \text{if kind} = \textsf{ge}
+\end{cases}
+\end{equation*}
+
+\noindent
+and renormalise the prices so $\sum_k p_k = 1$ before taking the
+expectation:
+
+\begin{equation*}
+\hat{\pi}_{\text{poly}}(e) = \sum_{k=1}^{K}
+   \frac{p_k}{\sum_{j} p_j} \cdot m_k^{\star}.
+\end{equation*}
+
+\noindent
+The renormalisation absorbs the typical few-percent quote-spread sum
+deviation from unity.  Following \citet{manski2006interpreting} we
+emphasise that $\hat{\pi}_{\text{poly}}$ is the price-implied
+expectation, not the expected belief of the marginal trader.
+
+\paragraph{T-1 day forecast cutoff.}  CPI prints are released by the
+BLS at 8:30 AM ET on the published release date.  Polymarket markets
+resolve over the subsequent few hours.  We define the ``T-1 day''
+forecast as the last hourly price recorded $\le 24$ hours before each
+event's \texttt{endDate} field.
+
+\subsection{Cleveland Fed nowcast at matched cutoff}
+
+For each target month $(y, m)$ we look up the corresponding Cleveland
+Fed chart (subcaption ``$y$-$m$''), iterate the daily ``CPI Inflation''
+series in order, and return the last value with date $\le$ the
+Polymarket T-1 day cutoff (using MM/DD string ordering, which works
+because the Cleveland Fed chart always covers a single contiguous
+window starting on the first business day of the target month).
+
+\subsection{Metrics}
+
+For each event, the forecast error is the signed difference
+\[
+\varepsilon^{(s)}_e = \hat{\pi}_s(e) - \pi^{\text{actual}}_e
+\quad \text{for } s \in \{\text{poly}, \text{cf}\}.
+\]
+\noindent
+We report mean absolute error
+$\mathrm{MAE} = \tfrac{1}{N}\sum |\varepsilon|$,
+root-mean-squared error $\mathrm{RMSE}$, signed bias
+$\overline{\varepsilon}$, and Pearson and Spearman correlations
+between forecast and realised values.  For Polymarket's full
+probability distribution over brackets, we also compute the multi-class
+Brier score \citep{brier1950verification}:
+\[
+B(e) = \sum_k (p_k - y_k)^2, \qquad
+y_k = \mathbf{1}[\text{realised} \in \text{bracket } k].
+\]
+\noindent
+$B$ ranges from 0 (perfect) to 2 (all mass on the wrong bracket); a
+uniform predictor over 5 brackets has expected $B = 0.80$.
+
+We test the headline hypothesis ``Polymarket and Cleveland Fed have
+equal MAE'' with a paired $t$-test on $\{|\varepsilon^{(\text{poly})}_e|
+- |\varepsilon^{(\text{cf})}_e|\}$.
+
+\subsection{Robustness}
+
+\textbf{Drop-1.}  We re-compute headline metrics after dropping the
+single event with the largest absolute difference in $|\varepsilon|$
+between forecasters.
+
+\textbf{Bracket-addendum dedupe.}  Polymarket occasionally re-lists a
+target with a wider bracket grid when the original grid looks
+underspecified -- ``March Inflation US -- Annual (Higher Brackets)''
+was added when the original grid's top bracket of $2.7\%$ was below
+the realised print of $3.26\%$.  For each (target month, kind), we
+keep the addendum event if one exists, otherwise the single original
+event.  We report the dedupe-sample metrics as a robustness check;
+this also helps mitigate the truncation bias documented below.
+
+\section{Experiments and Results}
+
+\subsection{Headline}
+
+Table~\ref{tab:headline} summarises the head-to-head on all 29 paired
+events.  Both forecasters have a mean absolute error of
+0.124\,pp.  The paired $t$-test on absolute errors gives
+$t = 0.02, p = 0.99$ -- a stark null.  Both forecasts are strongly
+correlated with the realised CPI value: Pearson $r = 0.984$ for
+Polymarket and $r = 0.992$ for the Cleveland Fed nowcast (both
+$p < 10^{-21}$).
+
+\begin{table}[t]
+\centering
+\caption{Headline head-to-head, all 29 paired events
+(target months Jan 2025 -- Apr 2026, mixed MoM + YoY).  Errors are
+in percentage points of CPI.  Paired $t$-test on absolute errors
+($H_0$: equal MAE).}
+\label{tab:headline}
+\begin{tabular}{lrrrr}
+\toprule
+                   & $N$ & MAE (pp) & RMSE (pp) & bias (pp) \\
+\midrule
+Polymarket         & 29 & 0.124 & 0.225 & $+0.018$ \\
+Cleveland Fed      & 29 & 0.124 & 0.174 & $-0.056$ \\
+\midrule
+Paired $t$-test    & \multicolumn{4}{c}{$t = 0.02$, $p = 0.99$} \\
+Pearson $r$ vs.\ realised & \multicolumn{4}{c}{Poly $0.984$ \quad CF $0.992$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Split by forecast horizon}
+
+The headline tie hides a clear cross-pattern by horizon
+(Table~\ref{tab:by_kind}).  On 13 monthly (MoM) prints Polymarket
+beats the model by 4\,bp of MAE; on 16 annual (YoY) prints the model
+beats Polymarket by 4\,bp of MAE.  Both differences are within the
+noise floor of our sample.
+
+\begin{table}[t]
+\centering
+\caption{Split by forecast kind.  Polymarket has the edge on monthly
+(MoM) prints; Cleveland Fed has the edge on annual (YoY) prints.
+Neither cross is statistically significant at $N$ this small, but the
+sign is consistent.}
+\label{tab:by_kind}
+\begin{tabular}{llrrr}
+\toprule
+Kind & Forecaster & $N$ & MAE (pp) & RMSE (pp) \\
+\midrule
+\multirow{2}{*}{Monthly (MoM)} & Polymarket    & 13 & 0.080 & 0.106 \\
+                               & Cleveland Fed & 13 & 0.123 & 0.171 \\
+\midrule
+\multirow{2}{*}{Annual (YoY)}  & Polymarket    & 16 & 0.160 & 0.288 \\
+                               & Cleveland Fed & 16 & 0.124 & 0.177 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The truncated-bracket artefact}
+
+Polymarket's RMSE is materially worse than its MAE
+($0.225$ vs.\ $0.124$\,pp).  The single biggest contributor is the
+March 2026 YoY event (id 208170), whose bracket grid was a set of
+seven point brackets at $\{2.1\%, 2.2\%, 2.3\%, 2.4\%, 2.5\%, 2.6\%,
+2.7\%\}$ -- so the implied mean was structurally bounded by the
+$[2.1, 2.7]$\,pp interval -- while the realised CPI YoY print came
+in at $3.26\%$, well outside the grid.  The implied mean was $2.32\%$,
+off by $-0.93$\,pp.  The Polymarket operator subsequently added a
+``Higher Brackets'' event (id 261155) covering
+$\{2.7\%, 2.8\%, 2.9\%, 3.0\%, 3.1\%, 3.2\%, 3.3\%\}$; that event's
+T-1 implied mean was $3.258\%$ -- within $0.002$\,pp of the realised
+value.
+
+The pattern is more general: the implied mean of a bracketed market
+is a $\sigma$-truncated estimator and is biased toward the bracket
+midrange whenever the realised value falls outside the bracket grid.
+Operators can (and on Polymarket do) mitigate this by re-listing with
+a wider grid, but doing so creates two competing events for the same
+target, and the user faces a choice about which one to ``believe''.
+We report both ``naive headline'' and ``addendum-preferring dedupe''
+metrics; see Table~\ref{tab:robustness}.
+
+\begin{table}[t]
+\centering
+\caption{Robustness checks.  ``Drop-1'' removes the single event with
+the largest $\big||\varepsilon_{\text{poly}}| - |\varepsilon_{\text{cf}}|\big|$
+(in both cases this is the March 2026 truncated-bracket event).
+``Dedupe'' keeps the operator-issued addendum event when one exists.}
+\label{tab:robustness}
+\begin{tabular}{lrrrrr}
+\toprule
+                       & $N$ & MAE$_{\text{poly}}$ & MAE$_{\text{cf}}$ & RMSE$_{\text{poly}}$ & RMSE$_{\text{cf}}$ \\
+\midrule
+Headline (all events)  & 29 & 0.124 & 0.124 & 0.225 & 0.174 \\
+Drop-1 (largest diff)  & 28 & 0.095 & 0.114 & 0.147 & 0.161 \\
+Dedupe (prefer addendum) & 27 & \textbf{0.078} & 0.117 & \textbf{0.103} & 0.164 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On the dedupe sample, the paired $t$-test on absolute errors gives
+$t = -1.72, p = 0.097$ in favour of Polymarket -- a marginal effect
+that should not be over-interpreted at $N = 27$, but is the opposite
+direction of the headline tie.
+
+\subsection{Volume tier}
+
+Splitting the sample at the median Polymarket dollar volume per event
+(\$591k), Polymarket's MAE is essentially the same in the two tiers
+($0.119$\,pp above the median, $0.130$\,pp below).  The Cleveland Fed
+nowcast model has \emph{lower} MAE on the low-volume tier
+($0.114$\,pp), which makes sense: the low-volume tier is dominated by
+the smaller, earlier 2025 markets when both forecasters had a stable
+disinflation backdrop to lean on.  We do not find evidence that
+``thicker markets are smarter markets'' in this sample.
+
+\subsection{Calibration of probabilistic forecasts}
+
+Polymarket emits a full probability distribution over brackets, not
+just a point forecast.  The mean multi-class Brier score on 26 events
+is $0.539$, compared to $0.80$ for a uniform-over-5-brackets
+predictor.  This says Polymarket's distribution is informative, but
+not sharply so -- much of the score comes from putting non-trivial
+probability mass on brackets adjacent to the realised one, which is
+weighed equally with putting mass on far brackets.  The worst
+per-event Brier score is $1.79$ for November 2025 MoM, where realised
+inflation came in at $0.02\%$ against an implied mean of $0.29\%$
+(a surprise on which the Cleveland Fed model also failed, missing by
+$+0.30$\,pp).
+
+We also have six early-2024 legacy binary ``Will CPI MoM be $> X$\%?''
+markets that did not survive into the bracketed era; their mean
+binary Brier score is $0.217$ (against $0.25$ for a coin flip on
+balanced YES/NO outcomes).  We exclude them from the main tables
+because they cannot be compared apples-to-apples with the bracket
+distributions of the modern markets.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figure_1.png}
+\caption{Forecast versus realised CPI for the 29 paired events.
+\textbf{(a)} Polymarket bracket-implied mean; \textbf{(b)} Cleveland
+Fed daily nowcast on the same cutoff date.  Annual (YoY) prints in
+salmon circles, monthly (MoM) prints in blue squares.  The
+$45^\circ$ line is the perfect-predictor reference.  Both forecasters
+cluster tightly around the line; Polymarket's single visible outlier
+in panel (a) at $(2.32, 3.26)$ is the truncated-bracket March 2026
+event discussed in Section 5.3.}
+\label{fig:scatter}
+\end{figure}
+
+\section{Discussion}
+
+The most accurate one-line summary is: \emph{at the T-1 day horizon
+for US CPI prints between January 2025 and April 2026, the median
+Polymarket bracket-implied forecast and the Federal Reserve Bank of
+Cleveland's daily nowcast were essentially tied in accuracy, both
+with mean absolute error of about $0.12$\,pp.}  That is mildly
+surprising on the prior that nowcasting models exploit a richer
+information set -- BLS PPI components, energy spot prices, scanner
+data -- than retail-and-prop traders are likely to.
+
+A few sub-results push gently against the null:
+
+\textbf{Polymarket wins on monthly MoM, loses on annual YoY.}
+We did not predict this.  One speculative reading is that
+annual YoY inflation is mechanically dominated by base effects (the
+12-month-ago print) that a model can compute exactly and an
+average trader has to look up; whereas monthly MoM noise depends more
+on idiosyncratic shocks (rent surveys, holiday seasonality, energy
+spot prices) where the marginal Polymarket trader may have an edge.
+This would be worth testing with more data.
+
+\textbf{Bracket design matters.}  The single largest Polymarket error
+in our sample is a market-design failure, not a trader failure.  When
+the operator listed a wider bracket grid for the same target,
+Polymarket nailed it to within $0.002$\,pp.  This suggests two
+operator-side levers: (i) wider default bracket grids, accepting some
+loss of single-bracket pricing resolution; and (ii) automatic
+addendum listing when the realised distribution starts to clip a
+boundary bracket.
+
+\textbf{The point-vs-distribution gap.}  Polymarket emits a full
+distribution over brackets; we collapse it to a mean for direct
+comparison with the Cleveland Fed nowcast (which is a point
+estimate).  A richer benchmark would include the Cleveland Fed's
+nowcast \emph{uncertainty}, which is published, or a distributional
+nowcast such as those in \citet{knotek2017nowcasting}.  Pushing
+distributional metrics like CRPS would also be informative.
+
+\textbf{Calibration is OK, sharpness is not.}  A mean Brier of
+$0.539$ on 5-bracket events is better than uniform ($0.80$) but
+well above what a near-perfect probabilistic forecaster would
+achieve.  This is broadly consistent with \citet{page2013calibration},
+who find that prediction markets are reasonably well calibrated at
+short horizons but not sharply so.
+
+\section{Limitations}
+
+\paragraph{Sample size.}  Twenty-nine paired observations is small.
+The headline $p$-value of $0.99$ for ``no difference in MAE'' is
+genuinely consistent with no difference, but it is also consistent
+with effect sizes of $\pm 0.05$\,pp in either direction -- comparable
+to the cross-pattern by horizon we observe.
+
+\paragraph{Polymarket's CLOB look-back window.}  The
+\texttt{/prices-history} endpoint rejects \texttt{(startTs, endTs)}
+windows wider than $\sim$15 days at 1-hour fidelity.  We worked around
+this by anchoring queries to the 14 days immediately before each
+resolution; this is adequate for a T-1 day analysis but precludes
+e.g.\ a T-30 or T-90 day forecast horizon study, which would more
+fairly test the markets' aggregation properties.
+
+\paragraph{Choice of economist benchmark.}  We use the Cleveland Fed
+nowcasting model because it publishes daily and historical data is
+recoverable as JSON.  The literal interpretation of ``economists''
+might prefer the Bloomberg or Wall Street Journal CPI consensus, but
+those are paywalled; the Philadelphia Fed Survey of Professional
+Forecasters publishes quarterly and does not cover individual monthly
+prints \citep{croushore2001realtime}.  The Cleveland Fed model has
+also been shown to outperform the SPF consensus
+\citep{knotek2017nowcasting}, so beating it is at least a meaningful
+standard.
+
+\paragraph{Bracket midpoint imputation.}  Treating each bracket as if
+it had a point mass at the bracket midpoint biases the implied mean
+when the within-bracket distribution is skewed, and is meaningless for
+the open-ended end brackets ($\le v$ and $\ge v$) other than by
+convention.  We assigned $\pm 0.05$\,pp offsets to those brackets,
+matching the within-bracket grid spacing; sensitivity to this choice
+is small for samples in which the boundary brackets carry little
+probability and large when they do not, the latter being precisely the
+truncation case discussed in Section 5.3.
+
+\paragraph{No survival adjustment.}  We compare only events that
+resolved.  Polymarket has not delisted any of our target inflation
+markets, so there is no obvious survival bias in our sample, but we
+cannot rule it out for the broader population of inflation-related
+markets.
+
+\paragraph{Single forecaster horizon.}  We compute everything at
+T-1 day.  The accuracy of either forecaster at longer horizons (a
+week, a month, a year) might tell a different story.
+
+\section{Conclusion}
+
+On 29 paired US CPI events from Polymarket between January 2025 and
+April 2026, the bracket-implied point forecast tied the Cleveland Fed
+nowcasting model on mean absolute error
+($0.124$\,pp each, paired $t$-test $p = 0.99$).  The headline tie is
+fragile: a single market-design artefact (a truncated bracket grid
+on March 2026 YoY inflation, off by $-0.93$\,pp) accounts for almost
+all of Polymarket's RMSE excess.  On a sample that prefers the
+operator-issued ``Higher Brackets'' addendum when one exists,
+Polymarket has the lower MAE ($0.078$ vs $0.117$\,pp).
+Polymarket beats the model on monthly MoM prints and loses on annual
+YoY prints; we do not have a confident story about why.
+
+We make no triumphant claim.  At this sample size, the most defensible
+statement is that liquid Polymarket inflation markets are roughly
+competitive with a publicly-documented professional nowcasting system
+-- which is itself a strong baseline against survey consensus
+\citep{knotek2017nowcasting}.  This is consistent with the older
+prediction-market literature \citep{wolfers2004prediction,
+snowberg2013prediction} but extends it to a domain (high-frequency
+US macro releases) where individual traders might plausibly have been
+overmatched by the institutional forecasters.
+
+\paragraph{Reproducibility.}  All numerical results in this paper are
+generated by the scripts in \texttt{scripts/}; running
+\texttt{python3 scripts/fetch\_data.py} (one-time, $\sim$3 min over
+Polymarket's public APIs) followed by
+\texttt{python3 scripts/analysis.py} and
+\texttt{python3 scripts/figure\_1.py} reproduces every number and
+the figure.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

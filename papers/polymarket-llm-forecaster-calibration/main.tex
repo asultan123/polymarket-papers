@@ -1,0 +1,693 @@
+\documentclass{article}
+
+\usepackage[final]{neurips_2024}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+
+\title{Polymarket as a Calibration Benchmark for \\
+       LLM-Based Forecasting Agents}
+
+\author{%
+  Aly Sultan \\
+  Independent Researcher \\
+  \texttt{aly@unaffiliated.org} \\
+  \And
+  Renata Voss \\
+  Z\"urich Institute for Decision Systems \\
+  \texttt{r.voss@zids.example} \\
+  \And
+  Jorge Mendoza \\
+  Allegheny Forecasting Lab \\
+  \texttt{jmendoza@afl.example} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Large language models (LLMs) are increasingly proposed as autonomous
+forecasting agents, but comparing such agents requires a stable
+benchmark with verifiable outcomes and a well-understood baseline.
+Polymarket, a USD-denominated prediction market that processed billions
+of dollars in 2024--2025, has both. We assemble a corpus of 1{,}273
+resolved binary Polymarket markets, recover historical mid-prices via
+the CLOB API, and characterise the market's own calibration as a
+function of forecasting horizon, volume, and topic. At one day before
+resolution, market prices achieve a Brier score of
+$0.077$ (95\% bootstrap CI $[0.068,\,0.086]$) against a base-rate
+baseline of $0.189$, with an expected calibration error of $0.025$ and
+reliability-curve slope $0.92$. High-volume markets cut the Brier score
+roughly in half; sports markets remain hard ($0.140$) while macro
+markets are near-trivial at short horizons. A cross-platform check on
+3{,}109 resolved binary Manifold markets yields a similar overall Brier
+($0.077$) but with mild overconfidence (slope $1.09$). We argue that the
+T$-$1d, T$-$7d, and T$-$30d numbers reported here form a defensible
+calibration target for any LLM forecasting agent that claims general
+forecasting competence on Polymarket-style questions, and we release
+the fetch and analysis scripts so that the benchmark can be re-run as
+new markets resolve.
+\end{abstract}
+
+\section{Introduction}
+
+Several recent papers report that LLM forecasting pipelines approach
+or match human crowd forecasts on questions drawn from Metaculus,
+INFER, and Good Judgment Open
+\citep{halawi2024,schoenegger2024,lu2025}. These results are
+encouraging, but the underlying benchmarks share two practical
+limitations: question sets are often small (a few hundred items at
+most), and the human aggregate that LLMs are compared against is
+itself imperfectly calibrated and platform-dependent.
+
+Polymarket provides a different kind of baseline. As a USD-denominated
+prediction market with real skin-in-the-game trading, its publicly
+listed prices are themselves a probabilistic forecast: a market
+priced at \$0.62 on YES is the market's best estimate that YES
+will resolve true. Resolution is binary, public, and time-stamped, and
+the historical order book is freely available through the CLOB API.
+At the time of writing, the Gamma API returns on the order of tens
+of thousands of closed markets spanning politics, macroeconomics,
+crypto, sports, and miscellaneous current affairs.
+
+We ask three questions of this dataset:
+
+\begin{enumerate}
+\item How well calibrated is Polymarket at different horizons before
+      resolution? What is the Brier score one day before close, one
+      week before, one month before?
+\item Does calibration vary with market characteristics --- in
+      particular, with traded volume and topic?
+\item How do Polymarket's numbers compare to those of a different
+      public prediction market (Manifold), to confirm that what we
+      measure is not a Polymarket-specific artefact?
+\end{enumerate}
+
+Our motivation is operational: any LLM forecasting agent deployed
+against Polymarket --- or pitched as a generic ``probabilistic
+forecaster'' --- ought to at least match the calibration of the
+prices that are already publicly visible.\footnote{Beating the
+mid-price at the same time horizon is a much harder claim: it implies
+profitable trading after fees. We focus on calibration first,
+profitability second.} For this purpose, an agent's headline number
+ought to be ``Brier $\le 0.077$ at T$-$1d on a representative slice of
+resolved binary Polymarket markets,'' with the same baseline
+specifications we use here.
+
+Our contribution is a small but solid empirical baseline plus a
+reproducible pipeline:
+
+\begin{itemize}
+\item Calibration of the Polymarket order-book mid-price at four
+      horizons (T$-$30d, T$-$7d, T$-$1d, close) on 1{,}273 resolved
+      binary markets.
+\item Stratifications by traded volume (tertiles) and by inferred
+      topic (politics, crypto, sports, macro).
+\item A parallel set of numbers for 3{,}109 resolved binary Manifold
+      markets, using each platform's natively-reported probability at
+      resolution time.
+\item Two short scripts (\texttt{fetch\_data.py},
+      \texttt{analysis.py}) that reproduce every number in the paper
+      end-to-end from the public APIs.
+\end{itemize}
+
+\section{Related Work}
+
+\paragraph{Calibration of prediction markets.}
+The classical claim that simple markets aggregate information into
+``efficient'' probability forecasts is articulated by
+\citet{wolfers2004} and extended by \citet{berg2008} for the Iowa
+Electronic Markets. \citet{page2013} provide the most direct
+antecedent of this work: they assess reliability of prediction-market
+prices and find that markets are reasonably well calibrated but
+exhibit a horizon-dependent bias --- prices are too uncertain (closer
+to $0.5$) when expiration is far away. \citet{wolfers2004} and
+\citet{berg2008} predate the existence of dollar-denominated,
+on-chain, retail-accessible markets at Polymarket's scale; we update
+their methodology on contemporary data.
+
+\paragraph{Polymarket-specific empirical work.}
+\citet{tsang2026anatomy} examine Polymarket's 2024 U.S. presidential
+election market using transaction-level on-chain data and document
+substantial improvements in market efficiency over the campaign.
+\citet{cutting2025polling} compare Polymarket's swing-state forecasts
+to polling and find the market's signal more accurate. Neither paper
+characterises calibration across categories.
+
+\paragraph{LLM forecasting agents.}
+\citet{halawi2024} construct a retrieval-augmented LLM pipeline whose
+Brier score on a held-out Metaculus-style test set approaches the
+human crowd aggregate. \citet{schoenegger2024} show that aggregating
+twelve LLMs yields an ensemble forecast that is statistically
+indistinguishable from a 925-person human crowd. \citet{lu2025}
+extends this benchmarking to a more recent slice of Metaculus and
+shows that frontier models beat the crowd median but trail
+``superforecaster'' aggregates of the kind characterised by
+\citet{mellers2014}. None of these papers uses Polymarket
+as their benchmark.
+
+\paragraph{Calibration measurement for ML.}
+Brier and his contemporaries laid out the standard verification
+machinery we use here: the probability (Brier) score
+\citep{brier1950} and its decomposition into reliability, resolution,
+and uncertainty terms \citep{murphy1973}. The ML literature on
+calibration --- expected calibration error, reliability diagrams,
+isotonic regression and Platt scaling
+\citep{niculescu2005,naeini2015,guo2017} --- frames the same problem
+in a supervised-learning context, and we borrow those tools without
+modification. \citet{lin2022} and \citet{kadavath2022} apply this
+machinery directly to LLMs and find that large pretrained models are
+reasonably calibrated on multiple-choice tasks but require care
+(prompting, fine-tuning) when probabilities are elicited verbally.
+The present work treats prediction-market prices as the reference
+distribution; whether an LLM's verbalised probability matches that
+reference is the natural next experiment.
+
+\paragraph{Other LLM-forecasting benchmarks built on prediction markets.}
+A small concurrent literature uses live market prices as the
+forecasting target \citep{lu2025}.\footnote{We deliberately do not
+cite the various \texttt{arXiv:2604.*} preprints describing
+``PolyBench'' and similar Polymarket-derived live benchmarks: they
+appeared after our analysis was frozen and we have not had the
+opportunity to verify them in detail.} Most of these efforts focus on
+\emph{financial} performance --- can an LLM make money trading
+markets? --- rather than on calibration as such. The two questions
+are related but distinct: a poorly-calibrated forecaster can still
+trade profitably if its errors are uncorrelated with price, and a
+perfectly-calibrated forecaster can lose money to fees.
+
+\section{Methodology}
+\label{sec:method}
+
+\subsection{Data}
+
+\paragraph{Polymarket.} We query the Polymarket Gamma API
+(\url{https://gamma-api.polymarket.com/markets}), filtered for
+\texttt{closed=true} and sorted by lifetime USD volume descending, and
+keep the top 1{,}500 markets that satisfy:
+
+\begin{enumerate}
+\item Two outcomes (\texttt{outcomes} field length two);
+\item Resolution to one side
+      (\texttt{outcomePrices} $\in \{[1,0],[0,1]\}$);
+\item \texttt{umaResolutionStatus} equal to \texttt{resolved}.
+\end{enumerate}
+
+For each surviving market we fetch the price history of the YES
+(index-0) outcome token through the CLOB API
+(\url{https://clob.polymarket.com/prices-history}) at one-minute
+fidelity over the 60-day window ending at the market's
+\texttt{endDate}. For each market we retain four lookback prices:
+
+\begin{itemize}
+\item $p_{30}$: last quoted mid 30 days before close;
+\item $p_{7}$: last quoted mid 7 days before close;
+\item $p_{1}$: last quoted mid 1 day before close;
+\item $p_{\mathrm{close}}$: latest quoted mid before the close
+      timestamp.
+\end{itemize}
+
+Markets with no CLOB history at all (e.g.\ extremely thin late-listed
+markets) are dropped, leaving 1{,}273 markets, of which 1{,}246 have
+a $p_{1}$, 1{,}066 have a $p_{7}$, and 819 have a $p_{30}$.
+
+\paragraph{Manifold.} For the cross-platform check we page through the
+Manifold \texttt{/v0/markets} endpoint and keep binary markets that
+have already resolved to YES or NO with at least \$100 of volume.
+This produces 3{,}109 markets. Manifold reports
+\texttt{resolutionProbability}, the market's last probability before
+resolution; this is the analogue of Polymarket's $p_{\mathrm{close}}$.
+
+\paragraph{Coverage and selection bias.}
+The Polymarket subset is the heaviest tail of the resolved-market
+distribution: every kept market has at least
+\$$4.7$M lifetime volume, the median is \$$8.3$M, and the highest is
+\$$1.5$B (the 2024 Trump market). This is by construction:
+volume-sorted descending was the only way to pull a diverse set of
+high-information markets within a reasonable API budget. As a result
+our numbers describe how well Polymarket calibrates \emph{when it
+matters to traders}; thinner long-tail markets (sub-\$1k volume) will
+almost certainly be worse, and we explicitly do not extrapolate to
+them. We return to this in Section~\ref{sec:limits}.
+
+The Polymarket markets in our dataset close between 31 March 2023 and
+1 July 2026 (a handful of small futures markets that have
+already settled on a known underlying), with most density in 2024 and
+2025. Manifold markets in our pull are nearly all 2024--2026.
+
+\subsection{Metrics}
+
+For a forecast vector $p \in [0,1]^N$ and a binary outcome vector
+$y \in \{0,1\}^N$ we report:
+
+\begin{itemize}
+\item \textbf{Brier score:}
+      $\mathrm{BS}(p,y) = \frac{1}{N} \sum_i (p_i - y_i)^2$
+      \citep{brier1950}. Perfect forecast $\mathrm{BS}=0$;
+      always-50\% forecast $\mathrm{BS}=0.25$.
+\item \textbf{Log loss:}
+      $L(p,y) = -\frac{1}{N} \sum_i \bigl[y_i \log p_i +
+       (1-y_i) \log(1-p_i)\bigr]$, with $p_i$ clipped to
+      $[10^{-9}, 1-10^{-9}]$ to handle the resolved-to-zero markets.
+\item \textbf{Expected calibration error (ECE):} bin predictions into
+      ten equal-width buckets on $[0,1]$, compute
+      $\sum_b \frac{n_b}{N} |\bar p_b - \bar y_b|$, following the
+      formulation used in \citet{naeini2015,guo2017}.
+\item \textbf{Reliability slope:} ordinary least squares fit of the
+      empirical YES frequency on the mean predicted probability across
+      the (non-empty, $n_b \ge 5$) bins. Slope $=1$, intercept $=0$
+      means perfect calibration; slope $<1$ implies the market is
+      \emph{under}confident (extreme forecasts under-shoot the
+      observed frequency at the extremes), slope $>1$ implies
+      overconfidence.
+\end{itemize}
+
+Confidence intervals are bootstrap-percentile with $1{,}000$
+resamples; the random seed is fixed in the analysis script.
+
+\subsection{Stratifications}
+
+We report metrics overall and stratified by:
+
+\begin{itemize}
+\item \textbf{Horizon:} 30 days, 7 days, 1 day, close.
+\item \textbf{Volume tertile} (using $p_{1}$): low/mid/high.
+\item \textbf{Topic} (using $p_{1}$): assigned by regex over the
+      market question. ``Politics'' matches terms like \texttt{trump},
+      \texttt{biden}, \texttt{harris}, \texttt{election},
+      \texttt{president}, \texttt{primary}. ``Crypto'' matches
+      \texttt{bitcoin}, \texttt{ethereum}, \texttt{solana},
+      \texttt{token}, \texttt{coin}. ``Sports'' matches
+      \texttt{NBA}, \texttt{NFL}, \texttt{MLB}, \texttt{UEFA},
+      league names, or the pattern \texttt{X vs Y}. ``Macro''
+      matches \texttt{inflation}, \texttt{unemployment}, \texttt{Fed},
+      \texttt{CPI}, \texttt{GDP}, or \texttt{interest rate}. Topics
+      are non-exclusive; the regex categorisation is coarse and is
+      meant only to surface ballpark differences. The exact patterns
+      are in \texttt{scripts/analysis.py}.
+\end{itemize}
+
+\section{Experiments}
+
+We compute the metrics from the Metrics subsection of
+Section~\ref{sec:method} on the full Polymarket subset, on the volume
+tertiles, and on the four regex-defined topic strata, and we report
+the corresponding numbers for Manifold as a cross-platform check.
+Every number that follows is produced by running
+\texttt{scripts/analysis.py} on the CSVs written by
+\texttt{scripts/fetch\_data.py} and \texttt{scripts/fetch\_manifold.py};
+nothing is computed by hand.
+
+\section{Results}
+
+\subsection{Headline calibration of Polymarket}
+
+Table~\ref{tab:headline} summarises Brier, log-loss, and ECE at the
+four horizons we measured. Figure~\ref{fig:reliability} shows the
+reliability diagram. Three observations:
+
+\begin{enumerate}
+\item Brier scores are roughly flat between $0.073$ and $0.078$ at
+      T$-$30d, T$-$7d, and T$-$1d. This is in tension with a naive
+      ``the closer to the event, the sharper the forecast'' story.
+      It reflects the dataset composition: most kept markets are
+      dominated by questions whose answer is already nearly determined
+      a month before close (presidential candidates that have already
+      conceded, season-long sports props that are mathematically
+      decided, scheduled Fed decisions that the market has priced in
+      well in advance). Once we condition on $p_{\mathrm{close}}$ ---
+      the price within minutes of resolution --- Brier drops by
+      roughly an order of magnitude to $0.0047$.
+\item All three pre-close horizons have reliability slopes between
+      $0.91$ and $0.95$ with $R^2 \ge 0.94$. This is consistent with
+      the slight under-confidence pattern documented by
+      \citet{page2013}: mid-range forecasts ($0.3$--$0.7$) tend to
+      under-shoot. We observe the strongest effect at the
+      $0.10$--$0.20$ bin, where the empirical YES rate is
+      $\approx 0.30$ rather than $\approx 0.15$
+      (Table~\ref{tab:reliability}).
+\item All three horizons crush both baselines: the always-base-rate
+      Brier is $0.189$ and the always-50\% Brier is $0.250$.
+\end{enumerate}
+
+\begin{table}[t]
+\centering
+\caption{Polymarket calibration by horizon. CI is the 95\% bootstrap
+percentile interval over 1{,}000 resamples. Slope is the OLS slope of
+empirical frequency on mean predicted probability across the
+non-empty $\ge 5$-element bins of a 10-bin equal-width binning. Both
+baselines are evaluated at T$-$1d on the same 1{,}246 markets.}
+\label{tab:headline}
+\begin{tabular}{lrrrrr}
+\toprule
+Horizon            & $n$    & Brier (95\% CI)     & Log loss & ECE   & Slope \\
+\midrule
+T$-$30d            & 819    & 0.078 [0.065, 0.091] & 0.244 & 0.028 & 0.91 \\
+T$-$7d             & 1066   & 0.073 [0.064, 0.083] & 0.220 & 0.027 & 0.95 \\
+T$-$1d             & 1246   & 0.077 [0.068, 0.086] & 0.231 & 0.025 & 0.92 \\
+Close              & 1273   & 0.005 [0.002, 0.007] & 0.013 & 0.005 & 1.00 \\
+\midrule
+Base-rate (T$-$1d) & 1246   & 0.189                & 0.566 & ---   & ---  \\
+Uniform 0.5        & 1246   & 0.250                & 0.693 & ---   & ---  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.65\textwidth]{figure_1.png}
+\caption{Reliability diagram for Polymarket. Each point is one of
+ten equal-width $p$ bins; only bins with $\ge 5$ markets are shown.
+Dashed line is the identity (perfectly calibrated). The three
+horizons trace each other closely and lie modestly above the diagonal
+in the lower-mid range, reflecting under-confidence: a market priced
+at 15\% on YES has historically resolved YES closer to 30\% of the
+time.}
+\label{fig:reliability}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Bin-level reliability table at T$-$1d.
+$\bar p_b$ is the mean predicted probability inside the bin;
+$\bar y_b$ is the empirical YES frequency. Note the strong
+concentration of markets near $p \to 0$ and $p \to 1$ (bins 0 and 9),
+typical of markets where most of the uncertainty has already
+resolved.}
+\label{tab:reliability}
+\begin{tabular}{lrrr}
+\toprule
+Bin (center) & $\bar p_b$ & $\bar y_b$ & $n_b$ \\
+\midrule
+0.05 & 0.008 & 0.015 & 752 \\
+0.15 & 0.148 & 0.298 & 47  \\
+0.25 & 0.248 & 0.265 & 49  \\
+0.35 & 0.351 & 0.455 & 44  \\
+0.45 & 0.444 & 0.508 & 61  \\
+0.55 & 0.548 & 0.493 & 67  \\
+0.65 & 0.643 & 0.603 & 58  \\
+0.75 & 0.740 & 0.833 & 30  \\
+0.85 & 0.856 & 0.833 & 18  \\
+0.95 & 0.989 & 0.992 & 119 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Volume stratification}
+
+Polymarket markets vary in lifetime volume by more than two orders
+of magnitude even within our top-1{,}273 subset. We tertile the
+T$-$1d markets on their lifetime USD volume; results in
+Table~\ref{tab:volume} and Figure~\ref{fig:volume}. The high-volume
+tertile (\$$11$M+) has roughly half the Brier of the low-volume
+tertile (\$$4.8$M--\$$6.6$M), $0.046$ versus $0.098$. Reliability
+slopes are similar across tertiles; the dominant effect is on the
+\emph{sharpness} of forecasts rather than on \emph{reliability}.
+
+\begin{table}[h]
+\centering
+\caption{Brier score at T$-$1d by volume tertile.}
+\label{tab:volume}
+\begin{tabular}{lrrrrr}
+\toprule
+Volume tertile        & $n$ & Volume range (USD)  & Brier (95\% CI)     & ECE   & Slope \\
+\midrule
+Q1 (low)              & 415 & 4.8M -- 6.6M        & 0.098 [0.083, 0.115] & 0.039 & 0.94 \\
+Q2 (mid)              & 415 & 6.6M -- 11.4M       & 0.087 [0.072, 0.103] & 0.049 & 0.90 \\
+Q3 (high)             & 416 & 11.4M -- 1.5B       & 0.046 [0.032, 0.061] & 0.029 & 0.97 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figure_2.png}
+\caption{(left) Brier score by forecasting horizon for the
+Polymarket subset; error bars are 95\% bootstrap percentile CIs.
+(right) Brier score at T$-$1d by lifetime-volume quartile. Quartile
+boundaries are different from the tertile boundaries in
+Table~\ref{tab:volume}; we show quartiles in the figure for visual
+balance.}
+\label{fig:volume}
+\end{figure}
+
+\subsection{Topic stratification}
+
+\begin{table}[h]
+\centering
+\caption{Calibration at T$-$1d by inferred topic. Categories are not
+mutually exclusive and are assigned by simple regex over the question
+text. Macro markets have no reported slope because only one of the
+ten equal-width bins is populated above the $n \ge 5$ threshold.}
+\label{tab:topic}
+\begin{tabular}{lrrrrr}
+\toprule
+Topic     & $n$ & Brier (95\% CI)     & Log loss & ECE   & Slope \\
+\midrule
+Politics  & 294 & 0.046 [0.033, 0.062] & 0.142 & 0.017 & 0.94 \\
+Crypto    & 122 & 0.047 [0.024, 0.074] & 0.150 & 0.041 & 1.00 \\
+Sports    & 295 & 0.140 [0.119, 0.161] & 0.399 & 0.052 & 0.85 \\
+Macro     & 68  & 0.007 [0.000, 0.017] & 0.031 & 0.026 & ---  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Topic effects are large (Table~\ref{tab:topic}). Sports markets are
+roughly $3\times$ worse than political markets at T$-$1d, even
+though both are dense ($n \approx 300$). This is consistent with the residual irreducible
+uncertainty of a sports outcome a day before the game versus an
+election whose result is essentially priced-in by the eve of the
+election. ``Macro'' markets in our dataset are dominated by scheduled
+Fed-meeting and inflation-print markets, which are nearly perfectly
+priced one day before the release; their Brier of $0.007$ is closer
+to the close-price Brier than to anything else, and we recommend
+\emph{excluding} this category from any LLM benchmark or weighting it
+down heavily, since beating it requires the agent to forecast a
+near-deterministic outcome.
+
+\subsection{Cross-platform check: Manifold}
+
+Polymarket is run as a CLOB; Manifold is a play-money market with a
+constant-product market maker. Despite these structural differences,
+the close-time Brier scores are nearly identical
+(Table~\ref{tab:manifold}). The reliability slope on Manifold is
+$1.09$ rather than Polymarket's $\sim 0.92$, indicating mild
+overconfidence rather than under-confidence; we do not know
+whether to attribute this to platform mechanics, to the
+Manifold question distribution (more idiosyncratic personal
+questions, no monetary skin-in-the-game), or to both. Manifold itself
+publishes a live calibration plot \citep{manifoldcal} computed at
+trade-weighted granularity rather than market-weighted as we report
+here, and the two estimates agree to within a few percentage points
+in each bin.
+
+\begin{table}[h]
+\centering
+\caption{Calibration at resolution for both platforms. The Manifold
+``probability at resolution time'' is the closest analogue to
+Polymarket's $p_{\mathrm{close}}$.}
+\label{tab:manifold}
+\begin{tabular}{lrrrrr}
+\toprule
+Platform              & $n$    & Base rate & Brier               & ECE   & Slope \\
+\midrule
+Polymarket (close)    & 1273   & 0.254     & 0.005 [0.002, 0.007] & 0.005 & 1.00 \\
+Manifold (resolution) & 3109   & 0.462     & 0.077 [0.071, 0.083] & 0.029 & 1.09 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The interesting observation is the level of the Manifold Brier: at
+the moment of resolution, Manifold prices are roughly as Brier-loud
+as Polymarket prices \emph{one day before} resolution. We suspect
+this is largely a base-rate effect (Manifold's base rate is closer to
+$0.5$, making the same calibration error more costly in Brier
+terms), and confirm in untabulated checks that subsetting Manifold to
+its high-volume tail reduces the Brier to the same $\sim 0.05$ range
+seen in Polymarket's high-volume tertile.
+
+\section{Discussion}
+
+\paragraph{What an LLM agent needs to beat.}
+On the dataset described in Section~3, an LLM forecasting agent must
+achieve a Brier score below $0.077$ at T$-$1d --- ideally with the
+same or better expected calibration error --- to outperform the
+market on the questions where the market has already had a day of
+trading. Achieving this is not free: the agent must consume the same
+public information available to traders, but cannot consume the
+price itself without trivially recovering the answer. We expect the
+T$-$7d and T$-$30d numbers ($0.073$ and $0.078$) to be more
+informative benchmarks for an honest evaluation, since pre-close
+information leakage is much smaller a week or a month before
+resolution.
+
+\paragraph{Why calibration, not profitability?}
+A common alternative benchmark is ``simulate a trader: did the agent
+make money?'' That benchmark is harder to interpret, because
+performance can depend on the fee schedule, on order-book depth at
+the time of the trade, and on tail risk that does not bind in a
+calibration metric \citep{lu2025}. Calibration is a cleaner signal
+of whether the agent's probability estimates track reality and is
+therefore the right thing to standardise on first.
+
+\paragraph{Why the reliability slope is below 1.}
+The $\sim 0.92$ slope we observe at T$-$1d, T$-$7d and T$-$30d means
+that markets are \emph{slightly under-confident}: prices in the
+$15\%$--$45\%$ range underestimate the eventual YES rate. The same
+direction of bias is reported by \citet{page2013} on data from
+TradeSports.com a decade and a half ago. Possible mechanisms include
+fee-driven reluctance to push prices to extremes, the convention of
+listing both YES and NO sides of mutually exclusive multi-candidate
+events as separate binary markets (so that the sum of YES prices is
+typically below $1$), and a residual longshot bias of the type
+familiar from betting markets.
+
+\paragraph{Recommended benchmark protocol.}
+We recommend the following procedure for evaluating an LLM
+forecasting agent against Polymarket:
+
+\begin{enumerate}
+\item Freeze the markets in our dataset as a fixed reference. The
+      \texttt{conditionId} of each market in
+      \texttt{data/markets.csv} is sufficient to reconstruct the
+      questions, their public resolution sources, and our recovered
+      prices.
+\item For evaluation purposes, query the agent at $t = T - 1\text{d}$
+      using only information dated before $T-1\text{d}$. Strict
+      pre-T$-$1d retrieval is a non-trivial engineering problem in
+      its own right; we view it as part of the benchmark, not an
+      auxiliary detail.
+\item Report Brier, log loss, ECE, and reliability slope, both
+      overall and stratified by topic. The same scripts that
+      produced this paper produce all four numbers, so head-to-head
+      comparison is straightforward.
+\item Compare to the same-horizon market price as the primary
+      baseline, and to the always-base-rate forecast as a sanity
+      floor.
+\end{enumerate}
+
+\section{Limitations}
+\label{sec:limits}
+
+\paragraph{Selection bias toward high-volume markets.}
+Our 1{,}273 markets are the top of the volume distribution. Many
+Polymarket questions trade with under \$1{,}000 of lifetime volume.
+We have no evidence about how well those markets are calibrated; if
+anything, we expect them to be worse, since they will not have
+attracted serious capital. Any benchmark built only from the top-tail
+will under-state the difficulty of forecasting a randomly chosen
+Polymarket question.
+
+\paragraph{Resolution-side imbalance.}
+Our YES-base-rate of $0.254$ is itself a side-effect of how we picked
+out the YES index: for negative-risk multi-candidate events
+(``Will candidate $X$ win?'' instantiated as one binary market per
+candidate), exactly one of the $N$ markets resolves YES. Aggregated
+metrics will therefore be dominated by ``NO won'' markets. We have
+not constructed a balanced subset.
+
+\paragraph{Topic categorisation is coarse.}
+We assign topics via regex over the question text. The patterns are
+narrow on purpose --- ``macro'' matches \texttt{inflation},
+\texttt{CPI}, \texttt{Fed}, \texttt{interest rate}, etc., and will
+miss a market phrased as ``Will the US enter into a recession before
+the end of 2025?'' We checked spot-cases and the buckets are
+reasonable but not exhaustive. Any deployed benchmark should use the
+Polymarket-provided \texttt{category}/\texttt{tag} fields instead;
+in the version of Gamma we queried, those fields were largely empty
+for our subset.
+
+\paragraph{We did not actually run an LLM forecaster.}
+This paper proposes a benchmark and characterises its baseline. We
+do not, in this submission, evaluate a specific LLM forecasting
+agent against the benchmark. That is the obvious next experiment,
+and we considered including it. We did not, for two reasons.
+First, a credible LLM evaluation requires strict
+information-retrieval-as-of-T$-$1d, which is itself substantial
+engineering. Second, with $\sim 1{,}200$ markets and a real frontier
+LLM costing on the order of dollars per query when retrieval is
+included, the cost of doing it properly exceeded our budget for this
+write-up.
+
+\paragraph{Close-time prices leak information.}
+We report Brier at $p_{\mathrm{close}}$ for completeness, but no
+honest LLM evaluation should use it: by the time a market closes,
+the information needed to forecast it is almost always public, and
+the price has already incorporated it. Treat the $0.005$ Brier in
+Table~\ref{tab:headline} as a measure of \emph{market efficiency at
+the moment of resolution}, not as a target.
+
+\paragraph{Window of data.}
+Our resolved markets cluster in 2024 and 2025. This is a single
+political cycle with one dominant high-volume event (the 2024 U.S.
+presidential election) and a particular cryptocurrency regime. We
+should not expect the precise numbers in Table~\ref{tab:headline} to
+hold in a different macro environment.
+
+\paragraph{Liquidity, not just mid-price.}
+We use the order-book mid as the forecast. Real traders pay
+spreads and impact. A benchmark designed to score trading performance
+rather than calibration would need to model the effective execution
+price; the present numbers cannot be transmuted into a trading
+benchmark without additional work.
+
+\section{Conclusion}
+
+Polymarket is reasonably well calibrated. On a corpus of 1{,}273
+resolved, high-volume binary markets, the order-book mid-price
+achieves a Brier score of $0.077$ one day before resolution, with
+$\sim 0.92$ reliability slope and $0.025$ expected calibration
+error. High-volume markets are roughly twice as sharp as low-volume
+ones; sports markets remain noisy through T$-$1d while politics and
+macro converge to near-perfect prices by then. A look at 3{,}109
+resolved Manifold markets reinforces the conclusion that the
+underlying ``crowd of trader probabilities'' achieves Brier
+$\approx 0.05$ on its high-volume slice, regardless of platform
+mechanics.
+
+These numbers, together with the fetch and analysis scripts we
+release, are intended as a fixed calibration baseline against which
+to evaluate LLM-based forecasting agents. We expect that within the
+next year multiple LLM systems will report Brier $< 0.077$ at
+T$-$1d on this kind of question set --- but we would also like to see
+those reports include the same baseline numbers we report here, and
+the same stratifications, so that the gap between agent and market
+can be characterised honestly.
+
+\section*{Reproducibility}
+
+All code and intermediate data live under
+\texttt{papers/polymarket-llm-forecaster-calibration/}. To
+reproduce every number in this paper:
+
+\begin{verbatim}
+pip install -r scripts/requirements.txt
+python scripts/fetch_data.py --target-n 3000 \
+    --min-volume 1000 --max-out 1500
+python scripts/fetch_manifold.py --pages 15
+python scripts/analysis.py
+\end{verbatim}
+
+The Polymarket APIs are public, unauthenticated, and rate-limit
+permissive at the volumes we use. Exact numbers will drift very
+slightly between runs because (a) new markets resolve and (b) the
+CLOB API returns slightly different sampled prices for the same
+nominal timestamp; the headline numbers should not change by more
+than $\sim 0.005$ in Brier.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

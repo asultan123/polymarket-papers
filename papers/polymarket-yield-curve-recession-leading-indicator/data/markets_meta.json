@@ -1,0 +1,72 @@
+{
+  "us-recession-in-2025": {
+    "event_title": "US recession in 2025?",
+    "start_date": "2025-01-08T01:35:22.579138Z",
+    "end_date": "2026-02-28T12:00:00Z",
+    "volume_usd": 11734512.428529,
+    "market_id": "516710",
+    "market_question": "US recession in 2025?",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "outcome_prices_at_close": [
+      "0",
+      "1"
+    ],
+    "yes_token_id": "104173557214744537570424345347209544585775842950109756851652855913015295701992"
+  },
+  "us-recession-by-end-of-2026": {
+    "event_title": "US recession by end of 2026?",
+    "start_date": "2025-09-29T22:29:04.240069Z",
+    "end_date": "2027-01-31T00:00:00Z",
+    "volume_usd": 1456751.9099459983,
+    "market_id": "609655",
+    "market_question": "US recession by end of 2026?",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "outcome_prices_at_close": [
+      "0.235",
+      "0.765"
+    ],
+    "yes_token_id": "100379208559626151022751801118534484742123694725746262280150222742563282755057"
+  },
+  "us-recession-in-2024-1": {
+    "event_title": "U.S. Recession in 2024?",
+    "start_date": "2024-08-05T03:04:58.758549Z",
+    "end_date": "2024-12-31T12:00:00Z",
+    "volume_usd": 875848.13851399,
+    "market_id": "500741",
+    "market_question": "U.S. Recession in 2024?",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "outcome_prices_at_close": [
+      "0",
+      "1"
+    ],
+    "yes_token_id": "7199924557536673982836049841538041571403060582795466550710959952259572350257"
+  },
+  "us-recession-announced-by-nber-before-june-2025": {
+    "event_title": "U.S. recession before May 2025?",
+    "start_date": "2024-09-26T16:04:48.547042Z",
+    "end_date": "2025-04-30T12:00:00Z",
+    "volume_usd": 858547.264528,
+    "market_id": "508169",
+    "market_question": "U.S. recession before May 2025?",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "outcome_prices_at_close": [
+      "0",
+      "1"
+    ],
+    "yes_token_id": "66162925847062993847093299904135100773674926133677495679668058080120084361082"
+  },
+  "negative-gdp-growth-in-2026": {
+    "event_title": "Negative GDP growth in 2026?",
+    "start_date": "2025-11-13T21:27:13.712283Z",
+    "end_date": "2027-01-29T00:00:00Z",
+    "volume_usd": 26507.76021499998,
+    "market_id": "680601",
+    "market_question": "Negative GDP growth in 2026?",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "outcome_prices_at_close": [
+      "0.063",
+      "0.937"
+    ],
+    "yes_token_id": "45429668890056162364307617807576387840293305143387096943585488315586563658159"
+  }
+}

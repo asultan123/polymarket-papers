@@ -1,0 +1,29 @@
+{
+  "fetched_at": "2026-05-17T02:35:14.149456",
+  "n_bucket_quarters": 5,
+  "n_aux_markets": 8,
+  "bucket_counts": {
+    "Q1_2025": 6,
+    "Q1_2026": 7,
+    "Q3_2025": 2,
+    "Q2_2025": 6,
+    "Q4_2025": 7
+  },
+  "yfinance_date_range": [
+    "2024-09-03",
+    "2026-05-15"
+  ],
+  "yfinance_columns": [
+    "SP500",
+    "TBILL_3M",
+    "TNX_10Y",
+    "FVX_5Y",
+    "HYG",
+    "TLT",
+    "DXY",
+    "XLI",
+    "XLY",
+    "XLU"
+  ],
+  "yfinance_rows": 429
+}

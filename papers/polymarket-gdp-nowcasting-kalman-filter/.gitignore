@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.pdf
+.venv/
+venv/
